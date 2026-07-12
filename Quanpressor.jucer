@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="QnPr031" name="Quanpressor" projectType="audioplug" useAppConfig="0"
+              addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" headerPath="../../../Patina/include;"
+              pluginName="Quanpressor" pluginDesc="Quanpressor" pluginManufacturer="SoundRave"
+              pluginManufacturerCode="SRav" pluginCode="QnPr" pluginFormats="buildAU,buildStandalone,buildVST3"
+              companyName="SoundRave" bundleIdentifier="org.soundrave.quanpressor"
+              vst3Category="Fx|Dynamics">
+  <MAINGROUP id="mainQnPr" name="Quanpressor">
+    <GROUP id="srcQnPr" name="Source">
+      <FILE id="metQnPr" name="Metering.h" compile="0" resource="0" file="Source/Metering.h"/>
+      <FILE id="edcQnPr" name="PluginEditor.cpp" compile="1" resource="0"
+            file="Source/PluginEditor.cpp"/>
+      <FILE id="edhQnPr" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
+      <FILE id="prcQnPr" name="PluginProcessor.cpp" compile="1" resource="0"
+            file="Source/PluginProcessor.cpp"/>
+      <FILE id="prhQnPr" name="PluginProcessor.h" compile="0" resource="0"
+            file="Source/PluginProcessor.h"/>
+      <FILE id="dspQnPr" name="QuanpressorDSP.h" compile="0" resource="0"
+            file="Source/QuanpressorDSP.h"/>
+    </GROUP>
+    <GROUP id="{4A11D255-50D1-EA2D-5225-5AE14D76DEDA}" name="Assets">
+      <FILE id="HGIcHB" name="Auto Gain Button.png" compile="0" resource="1"
+            file="Assets/Auto Gain Button.png"/>
+      <FILE id="MSoW4y" name="Auto Gain Button_ON.png" compile="0" resource="1"
+            file="Assets/Auto Gain Button_ON.png"/>
+      <FILE id="sUj4KL" name="Auto Release Button.png" compile="0" resource="1"
+            file="Assets/Auto Release Button.png"/>
+      <FILE id="razb0y" name="Auto Release Button_ON.png" compile="0" resource="1"
+            file="Assets/Auto Release Button_ON.png"/>
+      <FILE id="WSYSpW" name="BG.png" compile="0" resource="1" file="Assets/BG.png"/>
+      <FILE id="j59SFP" name="BlueKnob.png" compile="0" resource="1" file="Assets/BlueKnob.png"/>
+      <FILE id="cY8oow" name="FET Button.png" compile="0" resource="1" file="Assets/FET Button.png"/>
+      <FILE id="ghlkKa" name="FET Button_ON.png" compile="0" resource="1"
+            file="Assets/FET Button_ON.png"/>
+      <FILE id="ZPmPYJ" name="GR MATCH Button.png" compile="0" resource="1"
+            file="Assets/GR MATCH Button.png"/>
+      <FILE id="G1UaDy" name="GR MATCH Button_ON.png" compile="0" resource="1"
+            file="Assets/GR MATCH Button_ON.png"/>
+      <FILE id="gDkxMx" name="GrayKnob.png" compile="0" resource="1" file="Assets/GrayKnob.png"/>
+      <FILE id="mTBXvN" name="GRCurve_Embos.png" compile="0" resource="1"
+            file="Assets/GRCurve_Embos.png"/>
+      <FILE id="Qan0vt" name="GreenKnob.png" compile="0" resource="1" file="Assets/GreenKnob.png"/>
+      <FILE id="cKoEsU" name="GRHistory_Embos.png" compile="0" resource="1"
+            file="Assets/GRHistory_Embos.png"/>
+      <FILE id="LmJsYw" name="INOUT_Meter_Embos.png" compile="0" resource="1"
+            file="Assets/INOUT_Meter_Embos.png"/>
+      <FILE id="JnOqyf" name="KnobHighlight.png" compile="0" resource="1"
+            file="Assets/KnobHighlight.png"/>
+      <FILE id="qbQ5k3" name="KnobReflectOver.png" compile="0" resource="1"
+            file="Assets/KnobReflectOver.png"/>
+      <FILE id="nWY4lz" name="Mock_v2.png" compile="0" resource="1" file="Assets/Mock_v2.png"/>
+      <FILE id="NmCurt" name="NoMeterCurtain.png" compile="0" resource="1"
+            file="Assets/NoMeterCurtain.png"/>
+      <FILE id="ur9ELR" name="OPTO Button.png" compile="0" resource="1" file="Assets/OPTO Button.png"/>
+      <FILE id="iKE9NP" name="OPTO Button_ON.png" compile="0" resource="1"
+            file="Assets/OPTO Button_ON.png"/>
+      <FILE id="kjzRZ1" name="RedKnob.png" compile="0" resource="1" file="Assets/RedKnob.png"/>
+      <FILE id="B1pZDd" name="RESET PHOTOCELL.png" compile="0" resource="1"
+            file="Assets/RESET PHOTOCELL.png"/>
+      <FILE id="f6kxQc" name="RESET PHOTOCELL_ON.png" compile="0" resource="1"
+            file="Assets/RESET PHOTOCELL_ON.png"/>
+      <FILE id="nh9rbh" name="SC Filter.png" compile="0" resource="1" file="Assets/SC Filter.png"/>
+      <FILE id="ovbsSi" name="SC Filter_ON.png" compile="0" resource="1"
+            file="Assets/SC Filter_ON.png"/>
+      <FILE id="jsw3ST" name="ST Chain.png" compile="0" resource="1" file="Assets/ST Chain.png"/>
+      <FILE id="wMuhBD" name="ST Chain_ON.png" compile="0" resource="1" file="Assets/ST Chain_ON.png"/>
+      <FILE id="K33Wpk" name="Vari-Mu Button.png" compile="0" resource="1"
+            file="Assets/Vari-Mu Button.png"/>
+      <FILE id="FLuFMZ" name="Vari-Mu Button_ON.png" compile="0" resource="1"
+            file="Assets/Vari-Mu Button_ON.png"/>
+      <FILE id="WUKK1N" name="VCA Button.png" compile="0" resource="1" file="Assets/VCA Button.png"/>
+      <FILE id="aL2WyP" name="VCA Button_ON.png" compile="0" resource="1"
+            file="Assets/VCA Button_ON.png"/>
+      <FILE id="yKRM7P" name="YellowKnob.png" compile="0" resource="1" file="Assets/YellowKnob.png"/>
+    </GROUP>
+  </MAINGROUP>
+  <MODULES>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="0"
+            useGlobalPath="1"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_processors_headless" showAllCode="1" useLocalCopy="0"
+            useGlobalPath="1"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_dsp" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+  </MODULES>
+  <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_WEB_BROWSER="0" JUCE_USE_CURL="0"
+               JUCE_VST3_CAN_REPLACE_VST2="0"/>
+  <EXPORTFORMATS>
+    <XCODE_MAC targetFolder="Builds/MacOSX">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="Quanpressor"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="Quanpressor"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_dsp" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors_headless" path="../../JUCE/modules"/>
+      </MODULEPATHS>
+    </XCODE_MAC>
+  </EXPORTFORMATS>
+</JUCERPROJECT>

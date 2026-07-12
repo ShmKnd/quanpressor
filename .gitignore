@@ -1,0 +1,15 @@
+.DS_Store
+**/.DS_Store
+
+# Local build products
+Builds/*/build/
+cmake-build-*/
+build/
+
+# IDE user state
+**/xcuserdata/
+**/*.xcuserstate
+.vs/
+
+# Local source backups
+Source.zip
