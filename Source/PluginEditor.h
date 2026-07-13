@@ -86,6 +86,10 @@ private:
         QuanpressorAudioProcessor& p;
         explicit Graph(QuanpressorAudioProcessor& x) : p(x) {}
         void paint(juce::Graphics&) override;
+
+        float displayedInputDb = -48.0f;
+        double lastDisplayUpdateMs = 0.0;
+        bool displayStateInitialised = false;
     };
 
     struct HistoryGraph : juce::Component

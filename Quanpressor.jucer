@@ -20,59 +20,77 @@
             file="Source/QuanpressorDSP.h"/>
     </GROUP>
     <GROUP id="{4A11D255-50D1-EA2D-5225-5AE14D76DEDA}" name="Assets">
-      <FILE id="HGIcHB" name="Auto Gain Button.png" compile="0" resource="1"
+      <FILE id="QfZVEF" name="NoMeterButton_ON.png" compile="0" resource="1"
+            file="Assets/NoMeterButton_ON.png"/>
+      <FILE id="VPa2pD" name="VU_GRmode_ON.png" compile="0" resource="1"
+            file="Assets/VU_GRmode_ON.png"/>
+      <FILE id="nMpdTS" name="VU_INPUTmode_ON.png" compile="0" resource="1"
+            file="Assets/VU_INPUTmode_ON.png"/>
+      <FILE id="ov0dm5" name="VU_OUTPUTmode_ON.png" compile="0" resource="1"
+            file="Assets/VU_OUTPUTmode_ON.png"/>
+      <FILE id="DLLdeD" name="Auto Gain Button.png" compile="0" resource="1"
             file="Assets/Auto Gain Button.png"/>
-      <FILE id="MSoW4y" name="Auto Gain Button_ON.png" compile="0" resource="1"
+      <FILE id="KKNQEF" name="Auto Gain Button_ON.png" compile="0" resource="1"
             file="Assets/Auto Gain Button_ON.png"/>
-      <FILE id="sUj4KL" name="Auto Release Button.png" compile="0" resource="1"
+      <FILE id="kfmljX" name="Auto Release Button.png" compile="0" resource="1"
             file="Assets/Auto Release Button.png"/>
-      <FILE id="razb0y" name="Auto Release Button_ON.png" compile="0" resource="1"
+      <FILE id="SB7yZo" name="Auto Release Button_ON.png" compile="0" resource="1"
             file="Assets/Auto Release Button_ON.png"/>
-      <FILE id="WSYSpW" name="BG.png" compile="0" resource="1" file="Assets/BG.png"/>
-      <FILE id="j59SFP" name="BlueKnob.png" compile="0" resource="1" file="Assets/BlueKnob.png"/>
-      <FILE id="cY8oow" name="FET Button.png" compile="0" resource="1" file="Assets/FET Button.png"/>
-      <FILE id="ghlkKa" name="FET Button_ON.png" compile="0" resource="1"
+      <FILE id="SenDHn" name="BG.png" compile="0" resource="1" file="Assets/BG.png"/>
+      <FILE id="SONT5i" name="BlueKnob.png" compile="0" resource="1" file="Assets/BlueKnob.png"/>
+      <FILE id="O4ppFa" name="FET Button.png" compile="0" resource="1" file="Assets/FET Button.png"/>
+      <FILE id="Lh6mnU" name="FET Button_ON.png" compile="0" resource="1"
             file="Assets/FET Button_ON.png"/>
-      <FILE id="ZPmPYJ" name="GR MATCH Button.png" compile="0" resource="1"
+      <FILE id="C6z9ly" name="GR MATCH Button.png" compile="0" resource="1"
             file="Assets/GR MATCH Button.png"/>
-      <FILE id="G1UaDy" name="GR MATCH Button_ON.png" compile="0" resource="1"
+      <FILE id="IEBKNm" name="GR MATCH Button_ON.png" compile="0" resource="1"
             file="Assets/GR MATCH Button_ON.png"/>
-      <FILE id="gDkxMx" name="GrayKnob.png" compile="0" resource="1" file="Assets/GrayKnob.png"/>
-      <FILE id="mTBXvN" name="GRCurve_Embos.png" compile="0" resource="1"
+      <FILE id="VplbAk" name="GrayKnob.png" compile="0" resource="1" file="Assets/GrayKnob.png"/>
+      <FILE id="H8K23g" name="GRCurve_Embos.png" compile="0" resource="1"
             file="Assets/GRCurve_Embos.png"/>
-      <FILE id="Qan0vt" name="GreenKnob.png" compile="0" resource="1" file="Assets/GreenKnob.png"/>
-      <FILE id="cKoEsU" name="GRHistory_Embos.png" compile="0" resource="1"
+      <FILE id="nVNr0i" name="GreenKnob.png" compile="0" resource="1" file="Assets/GreenKnob.png"/>
+      <FILE id="uKryhR" name="GRHistory_Embos.png" compile="0" resource="1"
             file="Assets/GRHistory_Embos.png"/>
-      <FILE id="LmJsYw" name="INOUT_Meter_Embos.png" compile="0" resource="1"
+      <FILE id="X6LWPu" name="INOUT_Meter_Embos.png" compile="0" resource="1"
             file="Assets/INOUT_Meter_Embos.png"/>
-      <FILE id="JnOqyf" name="KnobHighlight.png" compile="0" resource="1"
+      <FILE id="A1yGg6" name="Knob_Scales.svg" compile="0" resource="1" file="Assets/Knob_Scales.svg"/>
+      <FILE id="irPAme" name="KnobHighlight.png" compile="0" resource="1"
             file="Assets/KnobHighlight.png"/>
-      <FILE id="qbQ5k3" name="KnobReflectOver.png" compile="0" resource="1"
+      <FILE id="JGzPAT" name="KnobReflectOver.png" compile="0" resource="1"
             file="Assets/KnobReflectOver.png"/>
-      <FILE id="nWY4lz" name="Mock_v2.png" compile="0" resource="1" file="Assets/Mock_v2.png"/>
-      <FILE id="NmCurt" name="NoMeterCurtain.png" compile="0" resource="1"
+      <FILE id="hsPDKr" name="Mock_v2.png" compile="0" resource="1" file="Assets/Mock_v2.png"/>
+      <FILE id="j1tKjn" name="NoMeterButton.png" compile="0" resource="1"
+            file="Assets/NoMeterButton.png"/>
+      <FILE id="mVN0Ro" name="NoMeterCurtain.png" compile="0" resource="1"
             file="Assets/NoMeterCurtain.png"/>
-      <FILE id="ur9ELR" name="OPTO Button.png" compile="0" resource="1" file="Assets/OPTO Button.png"/>
-      <FILE id="iKE9NP" name="OPTO Button_ON.png" compile="0" resource="1"
+      <FILE id="IeqPwu" name="OPTO Button.png" compile="0" resource="1" file="Assets/OPTO Button.png"/>
+      <FILE id="cPdPGv" name="OPTO Button_ON.png" compile="0" resource="1"
             file="Assets/OPTO Button_ON.png"/>
-      <FILE id="kjzRZ1" name="RedKnob.png" compile="0" resource="1" file="Assets/RedKnob.png"/>
-      <FILE id="B1pZDd" name="RESET PHOTOCELL.png" compile="0" resource="1"
+      <FILE id="oLVDFg" name="RedKnob.png" compile="0" resource="1" file="Assets/RedKnob.png"/>
+      <FILE id="govvPH" name="RESET PHOTOCELL.png" compile="0" resource="1"
             file="Assets/RESET PHOTOCELL.png"/>
-      <FILE id="f6kxQc" name="RESET PHOTOCELL_ON.png" compile="0" resource="1"
+      <FILE id="bSvJ5B" name="RESET PHOTOCELL_ON.png" compile="0" resource="1"
             file="Assets/RESET PHOTOCELL_ON.png"/>
-      <FILE id="nh9rbh" name="SC Filter.png" compile="0" resource="1" file="Assets/SC Filter.png"/>
-      <FILE id="ovbsSi" name="SC Filter_ON.png" compile="0" resource="1"
+      <FILE id="KYY5Fo" name="SC Filter.png" compile="0" resource="1" file="Assets/SC Filter.png"/>
+      <FILE id="aSabdY" name="SC Filter_ON.png" compile="0" resource="1"
             file="Assets/SC Filter_ON.png"/>
-      <FILE id="jsw3ST" name="ST Chain.png" compile="0" resource="1" file="Assets/ST Chain.png"/>
-      <FILE id="wMuhBD" name="ST Chain_ON.png" compile="0" resource="1" file="Assets/ST Chain_ON.png"/>
-      <FILE id="K33Wpk" name="Vari-Mu Button.png" compile="0" resource="1"
+      <FILE id="CshdCH" name="ST Chain.png" compile="0" resource="1" file="Assets/ST Chain.png"/>
+      <FILE id="ladCuU" name="ST Chain_ON.png" compile="0" resource="1" file="Assets/ST Chain_ON.png"/>
+      <FILE id="KL48nZ" name="Vari-Mu Button.png" compile="0" resource="1"
             file="Assets/Vari-Mu Button.png"/>
-      <FILE id="FLuFMZ" name="Vari-Mu Button_ON.png" compile="0" resource="1"
+      <FILE id="xpo1GC" name="Vari-Mu Button_ON.png" compile="0" resource="1"
             file="Assets/Vari-Mu Button_ON.png"/>
-      <FILE id="WUKK1N" name="VCA Button.png" compile="0" resource="1" file="Assets/VCA Button.png"/>
-      <FILE id="aL2WyP" name="VCA Button_ON.png" compile="0" resource="1"
+      <FILE id="L24E8I" name="VCA Button.png" compile="0" resource="1" file="Assets/VCA Button.png"/>
+      <FILE id="XomdwK" name="VCA Button_ON.png" compile="0" resource="1"
             file="Assets/VCA Button_ON.png"/>
-      <FILE id="yKRM7P" name="YellowKnob.png" compile="0" resource="1" file="Assets/YellowKnob.png"/>
+      <FILE id="xdt5aH" name="VU_GRmode.png" compile="0" resource="1" file="Assets/VU_GRmode.png"/>
+      <FILE id="wfG84O" name="VU_INPUTmode.png" compile="0" resource="1"
+            file="Assets/VU_INPUTmode.png"/>
+      <FILE id="A8VT63" name="VU_Meter_Scale.svg" compile="0" resource="1"
+            file="Assets/VU_Meter_Scale.svg"/>
+      <FILE id="jrKI5T" name="VU_OUTPUTmode.png" compile="0" resource="1"
+            file="Assets/VU_OUTPUTmode.png"/>
+      <FILE id="FwxwWw" name="YellowKnob.png" compile="0" resource="1" file="Assets/YellowKnob.png"/>
     </GROUP>
   </MAINGROUP>
   <MODULES>

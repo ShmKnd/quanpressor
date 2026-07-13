@@ -709,7 +709,26 @@ void QuanpressorAudioProcessorEditor::Graph::paint(juce::Graphics& g)
 
     juce::Path fullPath;
     juce::Path activePath;
-    const float currentInput = juce::jlimit(-48.0f, 12.0f, p.meters.graphInputDb.load());
+    const float targetInputDb = juce::jlimit(-48.0f, 12.0f,
+        p.meters.graphInputDb.load(std::memory_order_relaxed));
+    const double nowMs = juce::Time::getMillisecondCounterHiRes();
+
+    if (!displayStateInitialised)
+    {
+        displayedInputDb = targetInputDb;
+        displayStateInitialised = true;
+    }
+    else
+    {
+        constexpr float displayTimeSeconds = 0.065f;
+        const float elapsedSeconds = juce::jlimit(0.0f, 0.1f,
+            static_cast<float>((nowMs - lastDisplayUpdateMs) * 0.001));
+        const float alpha = 1.0f - std::exp(-elapsedSeconds / displayTimeSeconds);
+        displayedInputDb += alpha * (targetInputDb - displayedInputDb);
+    }
+
+    lastDisplayUpdateMs = nowMs;
+    const float currentInput = juce::jlimit(-48.0f, 12.0f, displayedInputDb);
     bool activeStarted = false;
     bool activeEnded = false;
 
@@ -742,6 +761,8 @@ void QuanpressorAudioProcessorEditor::Graph::paint(juce::Graphics& g)
     g.setColour(teal());
     g.strokePath(activePath, juce::PathStrokeType(4.0f));
 
+    // The spot is a static operating point. Attack/release state is shown only
+    // by the GR meter and history, so its Y coordinate always remains on curve.
     const float currentOutput = transferOutput(currentInput, th, rat, k, modeValue);
     const float markerX = juce::jmap(currentInput, -48.0f, 12.0f, a.getX(), a.getRight());
     const float markerY = juce::jmap(currentOutput, -48.0f, 12.0f, a.getBottom(), a.getY());
