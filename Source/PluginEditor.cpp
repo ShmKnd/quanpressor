@@ -1,4 +1,5 @@
 #include "PluginEditor.h"
+#include "MeterPrivacyRenderer.h"
 #include "VuScaleRenderer.h"
 #include "../JuceLibraryCode/BinaryData.h"
 #include <cmath>
@@ -8,6 +9,17 @@ namespace
     constexpr int kBaseWidth = 1360;
     constexpr int kBaseHeight = 820;
     constexpr float kUiScale = 0.75f;
+
+    const std::array<juce::Rectangle<int>, 2> kMeterPrivacyBaseBounds {{
+        { 545, 75, 444, 132 },
+        { 545, 245, 444, 543 }
+    }};
+
+    juce::Rectangle<int> scaledUiRectangle(juce::Rectangle<int> area)
+    {
+        return area.toFloat().transformedBy(juce::AffineTransform::scale(kUiScale))
+                   .getSmallestIntegerContainer();
+    }
 
     juce::Colour teal()  { return juce::Colour::fromRGB(26, 205, 184); }
     juce::Colour meterGreen() { return juce::Colour::fromRGB(38, 220, 142); }
@@ -21,6 +33,59 @@ namespace
     {
         static const auto img = imageFromBinary(BinaryData::BG_png, BinaryData::BG_pngSize);
         return img;
+    }
+
+    juce::Image createMeterPrivacySnapshot(juce::Component& content,
+                                           juce::Rectangle<int> overlayBounds,
+                                           float captureScale)
+    {
+        const int width = juce::jmax(1, juce::roundToInt(overlayBounds.getWidth() * captureScale));
+        const int height = juce::jmax(1, juce::roundToInt(overlayBounds.getHeight() * captureScale));
+        juce::Image result(juce::Image::ARGB, width, height, true);
+        juce::Graphics g(result);
+        g.setImageResamplingQuality(juce::Graphics::highResamplingQuality);
+
+        // The editor background is painted by the parent, while the moving
+        // meters live in content. Compose both without capturing OpenGL views.
+        g.drawImage(bgImage(),
+                    juce::Rectangle<float>(-overlayBounds.getX() * captureScale,
+                                           -overlayBounds.getY() * captureScale,
+                                           kBaseWidth * kUiScale * captureScale,
+                                           kBaseHeight * kUiScale * captureScale),
+                    juce::RectanglePlacement::stretchToFit);
+
+        const float componentScale = kUiScale * captureScale;
+        const juce::AffineTransform contentToSnapshot(componentScale, 0.0f,
+                                                       -overlayBounds.getX() * captureScale,
+                                                       0.0f, componentScale,
+                                                       -overlayBounds.getY() * captureScale);
+        g.addTransform(contentToSnapshot);
+        content.paintEntireComponent(g, true);
+        return result;
+    }
+
+    juce::Image createGrMatchingForeground(juce::Rectangle<int> overlayBounds,
+                                           float captureScale,
+                                           bool shouldDraw)
+    {
+        if (!shouldDraw)
+            return {};
+
+        const int width = juce::jmax(1, juce::roundToInt(overlayBounds.getWidth() * captureScale));
+        const int height = juce::jmax(1, juce::roundToInt(overlayBounds.getHeight() * captureScale));
+        juce::Image result(juce::Image::ARGB, width, height, true);
+        juce::Graphics g(result);
+
+        const float graphHeight = scaledUiRectangle({ 545, 245, 444, 337 }).getHeight() * captureScale;
+        const float bandHeight = 27.0f * captureScale;
+        const auto matchingArea = juce::Rectangle<float>(0.0f, graphHeight * 0.5f - bandHeight * 0.5f,
+                                                         static_cast<float>(width), bandHeight);
+        g.setColour(juce::Colours::black.withAlpha(0.42f));
+        g.fillRect(matchingArea);
+        g.setColour(juce::Colours::white.withAlpha(0.96f));
+        g.setFont(juce::FontOptions(12.0f * captureScale, juce::Font::bold));
+        g.drawText("GR Matching...", matchingArea, juce::Justification::centred, false);
+        return result;
     }
 
     const juce::Image& knobImage(QuanpressorAudioProcessorEditor::Knob::Colourway colourway)
@@ -78,6 +143,14 @@ namespace
         static const auto scFilterOn = imageFromBinary(BinaryData::SC_Filter_ON_png, BinaryData::SC_Filter_ON_pngSize);
         static const auto resetPhotocell = imageFromBinary(BinaryData::RESET_PHOTOCELL_png, BinaryData::RESET_PHOTOCELL_pngSize);
         static const auto resetPhotocellOn = imageFromBinary(BinaryData::RESET_PHOTOCELL_ON_png, BinaryData::RESET_PHOTOCELL_ON_pngSize);
+        static const auto vuOutput = imageFromBinary(BinaryData::VU_OUTPUTmode_png, BinaryData::VU_OUTPUTmode_pngSize);
+        static const auto vuOutputOn = imageFromBinary(BinaryData::VU_OUTPUTmode_ON_png, BinaryData::VU_OUTPUTmode_ON_pngSize);
+        static const auto vuInput = imageFromBinary(BinaryData::VU_INPUTmode_png, BinaryData::VU_INPUTmode_pngSize);
+        static const auto vuInputOn = imageFromBinary(BinaryData::VU_INPUTmode_ON_png, BinaryData::VU_INPUTmode_ON_pngSize);
+        static const auto vuGr = imageFromBinary(BinaryData::VU_GRmode_png, BinaryData::VU_GRmode_pngSize);
+        static const auto vuGrOn = imageFromBinary(BinaryData::VU_GRmode_ON_png, BinaryData::VU_GRmode_ON_pngSize);
+        static const auto noMeter = imageFromBinary(BinaryData::NoMeterButton_png, BinaryData::NoMeterButton_pngSize);
+        static const auto noMeterOn = imageFromBinary(BinaryData::NoMeterButton_ON_png, BinaryData::NoMeterButton_ON_pngSize);
 
         switch (kind)
         {
@@ -90,6 +163,10 @@ namespace
             case Kind::StChain:     return on ? stChainOn : stChain;
             case Kind::ScFilter:    return on ? scFilterOn : scFilter;
             case Kind::ResetPhotocell: return on ? resetPhotocellOn : resetPhotocell;
+            case Kind::VuOutput:    return on ? vuOutputOn : vuOutput;
+            case Kind::VuInput:     return on ? vuInputOn : vuInput;
+            case Kind::VuGr:        return on ? vuGrOn : vuGr;
+            case Kind::NoMeter:     return on ? noMeterOn : noMeter;
             case Kind::Fet:
             default:                return on ? fetOn : fet;
         }
@@ -113,13 +190,6 @@ namespace
     {
         static const auto img = imageFromBinary(BinaryData::GRHistory_Embos_png,
                                                 BinaryData::GRHistory_Embos_pngSize);
-        return img;
-    }
-
-    const juce::Image& noMeterCurtainImage()
-    {
-        static const auto img = imageFromBinary(BinaryData::NoMeterCurtain_png,
-                                                BinaryData::NoMeterCurtain_pngSize);
         return img;
     }
 
@@ -279,7 +349,7 @@ void QuanpressorAudioProcessorEditor::addKnob(Knob& k, const char* id)
 {
     content.addAndMakeVisible(k);
     k.parameterId = id;
-    k.setPopupDisplayEnabled(true, false, &content);
+    k.setPopupDisplayEnabled(true, false, nullptr);
     if (auto* parameter = proc.apvts.getParameter(id))
     {
         k.textFromValueFunction = [parameter](double value)
@@ -308,6 +378,10 @@ QuanpressorAudioProcessorEditor::QuanpressorAudioProcessorEditor(QuanpressorAudi
     stereoChain.kind = ImageButton::Kind::StChain;
     sidechainHpf.kind = ImageButton::Kind::ScFilter;
     optoReset.kind = ImageButton::Kind::ResetPhotocell;
+    vuModeButtons[0].kind = ImageButton::Kind::VuOutput;
+    vuModeButtons[1].kind = ImageButton::Kind::VuInput;
+    vuModeButtons[2].kind = ImageButton::Kind::VuGr;
+    noMeter.kind = ImageButton::Kind::NoMeter;
 
     for (int i = 0; i < static_cast<int>(modeButtons.size()); ++i)
     {
@@ -316,8 +390,16 @@ QuanpressorAudioProcessorEditor::QuanpressorAudioProcessorEditor(QuanpressorAudi
         content.addAndMakeVisible(modeButtons[static_cast<size_t>(i)]);
     }
 
-    for (auto* button : { &autoLevel, &autoRelease, &grMatch, &sidechainHpf, &stereoChain })
+    for (int i = 0; i < static_cast<int>(vuModeButtons.size()); ++i)
+    {
+        vuModeButtons[static_cast<size_t>(i)].setClickingTogglesState(false);
+        vuModeButtons[static_cast<size_t>(i)].onClick = [this, i] { setVuModeFromButton(i); };
+        content.addAndMakeVisible(vuModeButtons[static_cast<size_t>(i)]);
+    }
+
+    for (auto* button : { &autoLevel, &autoRelease, &grMatch, &sidechainHpf, &stereoChain, &noMeter })
         button->setClickingTogglesState(true);
+    content.addAndMakeVisible(noMeter);
 
     addKnob(input,     "input");
     addKnob(threshold, "threshold");
@@ -334,7 +416,7 @@ QuanpressorAudioProcessorEditor::QuanpressorAudioProcessorEditor(QuanpressorAudi
     addKnob(output,    "output");
     addKnob(mix,       "mix");
     content.addAndMakeVisible(timeConstant);
-    timeConstant.setPopupDisplayEnabled(true, false, &content);
+    timeConstant.setPopupDisplayEnabled(true, false, nullptr);
     if (auto* parameter = proc.apvts.getParameter("muSpeed"))
     {
         timeConstant.textFromValueFunction = [parameter](double value)
@@ -360,33 +442,65 @@ QuanpressorAudioProcessorEditor::QuanpressorAudioProcessorEditor(QuanpressorAudi
                      static_cast<juce::Component*>(&grMatch), static_cast<juce::Component*>(&sidechainHpf),
                      static_cast<juce::Component*>(&stereoChain), static_cast<juce::Component*>(&optoReset),
                      static_cast<juce::Component*>(&inMeter), static_cast<juce::Component*>(&outMeter),
-                     static_cast<juce::Component*>(&grMeter), static_cast<juce::Component*>(&vuMeter),
+                     static_cast<juce::Component*>(&grMeter),
                      static_cast<juce::Component*>(&graph), static_cast<juce::Component*>(&historyGraph),
                      static_cast<juce::Component*>(&grCurveEmbos),
-                     static_cast<juce::Component*>(&grHistoryEmbos),
-                     static_cast<juce::Component*>(&noMeterCurtain) })
+                     static_cast<juce::Component*>(&grHistoryEmbos) })
         content.addAndMakeVisible(c);
-
-    noMeterCurtain.setVisible(false);
+    for (auto& vuMeter : vuMeters)
+        content.addAndMakeVisible(vuMeter);
 
     ba.push_back(std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(proc.apvts, "autoLevel", autoLevel));
     ba.push_back(std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(proc.apvts, "autoRelease", autoRelease));
     ba.push_back(std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(proc.apvts, "grMatch", grMatch));
     ba.push_back(std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(proc.apvts, "sidechainHpf", sidechainHpf));
     ba.push_back(std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(proc.apvts, "stereoChain", stereoChain));
+    ba.push_back(std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(proc.apvts, "noMeter", noMeter));
 
     sidechainHpf.setTooltip("120 Hz sidechain high-pass: low frequencies pass without driving compression.");
     stereoChain.setTooltip("Links left/right gain reduction to preserve the stereo image.");
+    noMeter.setTooltip("Blur the central meters while keeping input and output peak meters visible.");
     optoReset.onClick = [this] { proc.requestOptoReset(); };
 
-    inMeter.value = &proc.meters.inputDb; inMeter.rmsValue = &proc.meters.inputRmsDb; inMeter.title = "INPUT";
-    outMeter.value = &proc.meters.outputDb; outMeter.rmsValue = &proc.meters.outputRmsDb; outMeter.title = "OUTPUT";
+    inMeter.peakValues = { &proc.meters.inputDb[0], &proc.meters.inputDb[1] };
+    inMeter.rmsValues = { &proc.meters.inputRmsDb[0], &proc.meters.inputRmsDb[1] };
+    inMeter.title = "INPUT";
+    outMeter.peakValues = { &proc.meters.outputDb[0], &proc.meters.outputDb[1] };
+    outMeter.rmsValues = { &proc.meters.outputRmsDb[0], &proc.meters.outputRmsDb[1] };
+    outMeter.title = "OUTPUT";
     grMeter.value = &proc.meters.grDb;      grMeter.title = "GR"; grMeter.gr = true;
-    vuMeter.value = &proc.meters.vuDb;
+    for (size_t ch = 0; ch < vuMeters.size(); ++ch)
+    {
+        vuMeters[ch].outputValue = &proc.meters.outputVuDb[ch];
+        vuMeters[ch].inputValue = &proc.meters.inputVuDb[ch];
+        vuMeters[ch].grValue = &proc.meters.grVuDb[ch];
+    }
     grCurveEmbos.kind = EmbosOverlay::Kind::GrCurve;
+
+    for (auto& renderer : meterPrivacyRenderers)
+    {
+        renderer = createMeterPrivacyRenderer();
+        if (renderer != nullptr)
+        {
+            addAndMakeVisible(renderer->getView());
+            renderer->getView().setVisible(false);
+            renderer->attach();
+        }
+    }
+
+    grMatchingOverlay.matching = &proc.meters.grMatching;
+    addAndMakeVisible(grMatchingOverlay);
 
     updateArchitectureControls();
     startTimerHz(30);
+}
+
+QuanpressorAudioProcessorEditor::~QuanpressorAudioProcessorEditor()
+{
+    stopTimer();
+    for (auto& renderer : meterPrivacyRenderers)
+        if (renderer != nullptr)
+            renderer->shutdown();
 }
 
 void QuanpressorAudioProcessorEditor::paint(juce::Graphics& g)
@@ -424,6 +538,11 @@ void QuanpressorAudioProcessorEditor::resized()
     placeButton(modeButtons[2], 339, 109, 94, 44);
     placeButton(modeButtons[3], 441, 109, 94, 44);
 
+    vuModeButtons[1].setBounds(651, 212, 64, 22);
+    vuModeButtons[0].setBounds(725, 212, 64, 22);
+    vuModeButtons[2].setBounds(798, 212, 64, 22);
+    noMeter.setBounds(949, 207, 30, 31);
+
     placeKnob(threshold, 146, 263);
     placeKnob(ratio, 250, 263);
     placeKnob(knee, 352, 263);
@@ -439,19 +558,27 @@ void QuanpressorAudioProcessorEditor::resized()
     timeConstant.setBounds(192, 626, 89, 89);
     placeButton(optoReset, 348, 653, 115, 31);
 
-    vuMeter.setBounds(655, 93, 220, 112);
+    vuMeters[0].setBounds(582, 93, 168, 86);
+    vuMeters[1].setBounds(781, 93, 168, 86);
     graph.setBounds(545, 245, 444, 337);
     grCurveEmbos.setBounds(graph.getBounds());
     historyGraph.setBounds(545, 586, 380, 202);
     grMeter.setBounds(925, 586, 64, 202);
     grHistoryEmbos.setBounds(historyGraph.getBounds().getUnion(grMeter.getBounds()));
-    noMeterCurtain.setBounds(486, 0, 586, 820);
+
+    for (size_t i = 0; i < meterPrivacyRenderers.size(); ++i)
+        if (meterPrivacyRenderers[i] != nullptr)
+            meterPrivacyRenderers[i]->getView().setBounds(scaledUiRectangle(kMeterPrivacyBaseBounds[i]));
+    grMatchingOverlay.setBounds(scaledUiRectangle({ 545, 245, 444, 337 }));
 
     placeKnob(highFreq, 1020, 188);
     placeKnob(highAmt, 1140, 188);
     placeKnob(lowFreq, 1020, 367);
     placeKnob(lowAmt, 1140, 367);
     placeKnob(mix, 1082, 515);
+
+    if (meterPrivacyEnabled)
+        updateMeterPrivacy(true, true);
 }
 
 void QuanpressorAudioProcessorEditor::updateArchitectureControls()
@@ -512,20 +639,98 @@ void QuanpressorAudioProcessorEditor::setModeFromButton(int index)
     updateArchitectureControls();
 }
 
+void QuanpressorAudioProcessorEditor::setVuModeFromButton(int index)
+{
+    if (auto* parameter = proc.apvts.getParameter("vuMode"))
+    {
+        const float normalized = static_cast<float>(juce::jlimit(0, 2, index)) / 2.0f;
+        parameter->beginChangeGesture();
+        parameter->setValueNotifyingHost(normalized);
+        parameter->endChangeGesture();
+    }
+}
+
+void QuanpressorAudioProcessorEditor::updateMeterPrivacy(bool shouldBeEnabled, bool forceCapture)
+{
+    if (!shouldBeEnabled)
+    {
+        meterPrivacyEnabled = false;
+        meterPrivacyCaptureCounter = 0;
+        for (auto& renderer : meterPrivacyRenderers)
+            if (renderer != nullptr)
+                renderer->setEnabled(false);
+        return;
+    }
+
+    ++meterPrivacyCaptureCounter;
+    const bool shouldCapture = forceCapture || !meterPrivacyEnabled
+                            || meterPrivacyCaptureCounter >= 3;
+    if (shouldCapture)
+    {
+        meterPrivacyCaptureCounter = 0;
+        const float captureScale = juce::jlimit(1.0f, 2.0f,
+            juce::Component::getApproximateScaleFactorForComponent(this));
+        for (size_t i = 0; i < meterPrivacyRenderers.size(); ++i)
+        {
+            auto& renderer = meterPrivacyRenderers[i];
+            if (renderer == nullptr)
+                continue;
+
+            auto& view = renderer->getView();
+            const auto overlayBounds = scaledUiRectangle(kMeterPrivacyBaseBounds[i]);
+            if (view.getBounds() != overlayBounds)
+                view.setBounds(overlayBounds);
+
+            // The renderer views are siblings of content, so this captures only
+            // the native meters and never the previous blurred OpenGL frame.
+            const auto source = createMeterPrivacySnapshot(content, overlayBounds, captureScale);
+            MeterPrivacyRenderer::Regions localRegions {};
+            localRegions[0] = juce::Rectangle<int>(0, 0, overlayBounds.getWidth(), overlayBounds.getHeight());
+
+            const float blurRadius = (i == 0 ? 28.0f : 38.0f) * captureScale;
+            const bool matchingVisible = i == 1
+                && proc.meters.grMatching.load(std::memory_order_relaxed)
+                && ((juce::Time::getMillisecondCounter() / 400u) % 2u == 0u);
+            auto foreground = createGrMatchingForeground(overlayBounds, captureScale, matchingVisible);
+
+            renderer->submitFrame(source, localRegions, blurRadius, std::move(foreground));
+        }
+    }
+
+    meterPrivacyEnabled = true;
+    for (auto& renderer : meterPrivacyRenderers)
+    {
+        if (renderer == nullptr)
+            continue;
+
+        renderer->setEnabled(true);
+        renderer->getView().toFront(false);
+    }
+
+}
+
 void QuanpressorAudioProcessorEditor::timerCallback()
 {
     updateArchitectureControls();
+    const int vuModeIndex = juce::jlimit(0, 2,
+        static_cast<int>(proc.apvts.getRawParameterValue("vuMode")->load()));
+    for (auto& vuMeter : vuMeters)
+        vuMeter.mode = static_cast<VuMeter::Mode>(vuModeIndex);
+    for (int i = 0; i < static_cast<int>(vuModeButtons.size()); ++i)
+        vuModeButtons[static_cast<size_t>(i)].setToggleState(i == vuModeIndex,
+                                                             juce::dontSendNotification);
+
     const bool hideMeters = proc.apvts.getRawParameterValue("noMeter")->load() > 0.5f;
-    if (noMeterCurtain.isVisible() != hideMeters)
-    {
-        noMeterCurtain.setVisible(hideMeters);
-        if (hideMeters)
-            noMeterCurtain.toFront(false);
-    }
+    updateMeterPrivacy(hideMeters);
+    grMatchingOverlay.setVisible(!hideMeters);
+    if (!hideMeters)
+        grMatchingOverlay.toFront(false);
+    grMatchingOverlay.repaint();
     inMeter.repaint();
     outMeter.repaint();
     grMeter.repaint();
-    vuMeter.repaint();
+    for (auto& vuMeter : vuMeters)
+        vuMeter.repaint();
     graph.repaint();
     historyGraph.repaint();
 }
@@ -534,7 +739,18 @@ void QuanpressorAudioProcessorEditor::Meter::paint(juce::Graphics& g)
 {
     g.fillAll(juce::Colours::black.withAlpha(0.55f));
     const float v = value ? value->load() : -100.0f;
-    const float rms = rmsValue ? rmsValue->load() : -100.0f;
+    std::array<float, 2> peakDb {{ -100.0f, -100.0f }};
+    std::array<float, 2> rmsDb {{ -100.0f, -100.0f }};
+    if (!gr)
+    {
+        for (size_t ch = 0; ch < peakDb.size(); ++ch)
+        {
+            if (peakValues[ch] != nullptr)
+                peakDb[ch] = peakValues[ch]->load(std::memory_order_relaxed);
+            if (rmsValues[ch] != nullptr)
+                rmsDb[ch] = rmsValues[ch]->load(std::memory_order_relaxed);
+        }
+    }
     auto bounds = getLocalBounds();
     g.setColour(juce::Colours::white);
     g.setFont(10.5f);
@@ -554,16 +770,7 @@ void QuanpressorAudioProcessorEditor::Meter::paint(juce::Graphics& g)
         content.removeFromTop(18.0f);
     }
 
-    // Reserve explicit widths instead of letting the dB scale squeeze the peak bar.
-    // I/O meters use a clearly dominant peak bar plus a narrow RMS bar.
     auto scaleArea = content.removeFromRight(18.0f);
-    juce::Rectangle<float> rmsArea;
-    if (!gr)
-    {
-        content.removeFromRight(2.0f);
-        rmsArea = content.removeFromRight(6.0f);
-        content.removeFromRight(3.0f);
-    }
     auto peakArea = content;
 
     const auto levelToY = [&](float db)
@@ -584,33 +791,87 @@ void QuanpressorAudioProcessorEditor::Meter::paint(juce::Graphics& g)
     {
         const auto meterColour = meterGreen();
         const auto overloadColour = juce::Colour::fromRGB(238, 54, 56);
-        const float zeroY = levelToY(0.0f);
-        const float y = levelToY(v);
+        const auto greenZoneColour = juce::Colour::fromRGB(9, 48, 33);
+        const auto redZoneColour = juce::Colour::fromRGB(52, 18, 20);
+        content.removeFromRight(2.0f);
+        auto rmsPairArea = content.removeFromRight(9.0f);
+        content.removeFromRight(2.0f);
+        auto peakPairArea = content;
 
-        g.setColour(juce::Colours::black.withAlpha(0.36f));
-        g.fillRect(peakArea);
-        g.setColour(meterColour);
-        g.fillRect(peakArea.withTop(juce::jmax(y, zeroY)));
-        if (v > 0.0f)
+        constexpr float peakGap = 2.0f;
+        const float peakWidth = (peakPairArea.getWidth() - peakGap) * 0.5f;
+        const std::array<juce::Rectangle<float>, 2> peakAreas {{
+            peakPairArea.withWidth(peakWidth),
+            juce::Rectangle<float>(peakPairArea.getX() + peakWidth + peakGap,
+                                   peakPairArea.getY(), peakWidth, peakPairArea.getHeight())
+        }};
+
+        constexpr float rmsGap = 1.0f;
+        const float rmsWidth = (rmsPairArea.getWidth() - rmsGap) * 0.5f;
+        const std::array<juce::Rectangle<float>, 2> rmsAreas {{
+            rmsPairArea.withWidth(rmsWidth),
+            juce::Rectangle<float>(rmsPairArea.getX() + rmsWidth + rmsGap,
+                                   rmsPairArea.getY(), rmsWidth, rmsPairArea.getHeight())
+        }};
+
+        const auto drawLevelBar = [&](juce::Rectangle<float> area, float db,
+                                      float activeAlpha, bool drawPeakCap)
         {
-            g.setColour(overloadColour);
-            g.fillRect(juce::Rectangle<float>(peakArea.getX(), y, peakArea.getWidth(), zeroY - y));
-        }
+            const float zeroY = juce::jmap(0.0f, 6.0f, -60.0f, area.getY(), area.getBottom());
+            const float y = juce::jmap(juce::jlimit(-60.0f, 6.0f, db),
+                                       6.0f, -60.0f, area.getY(), area.getBottom());
+            const auto redZone = area.withBottom(zeroY);
+            const auto greenZone = area.withTop(zeroY);
+            const auto activeArea = area.withTop(y);
 
-        g.setColour((v > 0.0f ? overloadColour.brighter(0.25f) : meterColour.brighter(0.22f)).withAlpha(0.95f));
-        g.fillRect(peakArea.getX(), juce::jlimit(peakArea.getY(), peakArea.getBottom() - 1.5f, y),
-                   peakArea.getWidth(), 1.5f);
+            g.setColour(redZoneColour);
+            g.fillRect(redZone);
+            g.setColour(greenZoneColour);
+            g.fillRect(greenZone);
+            g.setColour(meterColour.withAlpha(activeAlpha));
+            g.fillRect(activeArea.getIntersection(greenZone));
+            g.setColour(overloadColour.withAlpha(activeAlpha));
+            g.fillRect(activeArea.getIntersection(redZone));
 
-        g.setColour(overloadColour.withAlpha(0.72f));
-        g.fillRect(peakArea.getX(), zeroY, peakArea.getWidth(), 1.0f);
+            if (drawPeakCap)
+            {
+                g.setColour((db > 0.0f ? overloadColour.brighter(0.25f)
+                                       : meterColour.brighter(0.22f)).withAlpha(0.95f));
+                g.fillRect(area.getX(), juce::jlimit(area.getY(), area.getBottom() - 1.5f, y),
+                           area.getWidth(), 1.5f);
+            }
+        };
 
-        const float rmsY = levelToY(rms);
-        g.setColour(meterColour.withAlpha(0.72f));
-        g.fillRect(rmsArea.withTop(juce::jmax(rmsY, zeroY)));
-        if (rms > 0.0f)
+        const double nowMs = juce::Time::getMillisecondCounterHiRes();
+        const float elapsedSeconds = lastHoldUpdateMs > 0.0
+            ? juce::jlimit(0.0f, 0.1f, static_cast<float>((nowMs - lastHoldUpdateMs) * 0.001))
+            : 0.0f;
+        lastHoldUpdateMs = nowMs;
+
+        for (size_t ch = 0; ch < peakAreas.size(); ++ch)
         {
-            g.setColour(overloadColour.withAlpha(0.82f));
-            g.fillRect(juce::Rectangle<float>(rmsArea.getX(), rmsY, rmsArea.getWidth(), zeroY - rmsY));
+            drawLevelBar(peakAreas[ch], peakDb[ch], 1.0f, true);
+            drawLevelBar(rmsAreas[ch], rmsDb[ch], 0.72f, false);
+
+            if (heldPeakDb[ch] <= -99.0f || peakDb[ch] >= heldPeakDb[ch])
+            {
+                heldPeakDb[ch] = peakDb[ch];
+                holdUntilMs[ch] = nowMs + 1400.0;
+            }
+            else if (nowMs > holdUntilMs[ch])
+            {
+                heldPeakDb[ch] = juce::jmax(peakDb[ch], heldPeakDb[ch] - 18.0f * elapsedSeconds);
+            }
+
+            if (heldPeakDb[ch] > -60.0f)
+            {
+                const float holdY = juce::jmap(juce::jlimit(-60.0f, 6.0f, heldPeakDb[ch]),
+                                               6.0f, -60.0f,
+                                               peakAreas[ch].getY(), peakAreas[ch].getBottom());
+                g.setColour((heldPeakDb[ch] > 0.0f ? overloadColour.brighter(0.25f)
+                                                   : meterColour.brighter(0.42f)).withAlpha(0.96f));
+                g.fillRect(peakAreas[ch].getX(), holdY, peakAreas[ch].getWidth(), 1.25f);
+            }
         }
     }
 
@@ -644,7 +905,9 @@ void QuanpressorAudioProcessorEditor::Meter::paint(juce::Graphics& g)
 void QuanpressorAudioProcessorEditor::VuMeter::paint(juce::Graphics& g)
 {
     auto full = getLocalBounds().toFloat();
-    VuScaleRenderer::draw(g, full);
+    const bool showGainReduction = mode == Mode::gainReduction;
+    VuScaleRenderer::draw(g, full, showGainReduction ? VuScaleRenderer::Mode::gainReduction
+                                                      : VuScaleRenderer::Mode::level);
     const auto needleCentre = juce::Point<float>(full.getCentreX(), full.getY() + full.getHeight() * 0.88f);
     const auto scaleCentre = juce::Point<float>(full.getCentreX(), full.getY() + full.getHeight() * 0.68f);
     const float scaleRadiusX = full.getWidth() * 0.47f;
@@ -661,8 +924,16 @@ void QuanpressorAudioProcessorEditor::VuMeter::paint(juce::Graphics& g)
         return (-b + std::sqrt(juce::jmax(0.0f, b * b - 4.0f * a * c))) / (2.0f * a);
     };
 
-    const float vu = value ? value->load() : -100.0f;
-    const float angle = VuScaleRenderer::angleForVu(vu);
+    float vu = -60.0f;
+    if (mode == Mode::input)
+        vu = inputValue != nullptr ? inputValue->load(std::memory_order_relaxed) : -60.0f;
+    else if (mode == Mode::gainReduction)
+        vu = grValue != nullptr ? grValue->load(std::memory_order_relaxed) : 0.0f;
+    else
+        vu = outputValue != nullptr ? outputValue->load(std::memory_order_relaxed) : -60.0f;
+
+    const float angle = showGainReduction ? VuScaleRenderer::angleForGainReduction(vu)
+                                          : VuScaleRenderer::angleForVu(vu);
     const auto tip = needleCentre + juce::Point<float>(std::cos(angle), std::sin(angle))
         * outerDistanceForAngle(angle);
     g.setColour(juce::Colours::black.withAlpha(0.86f));
@@ -769,18 +1040,6 @@ void QuanpressorAudioProcessorEditor::Graph::paint(juce::Graphics& g)
     g.setColour(juce::Colours::white);
     g.fillEllipse(markerX - 5.0f, markerY - 5.0f, 10.0f, 10.0f);
 
-    if (p.meters.grMatching.load(std::memory_order_relaxed)
-        && ((juce::Time::getMillisecondCounter() / 400u) % 2u == 0u))
-    {
-        const auto matchingArea = juce::Rectangle<float>(0.0f, getHeight() * 0.5f - 18.0f,
-                                                         static_cast<float>(getWidth()), 36.0f);
-        g.setColour(juce::Colours::black.withAlpha(0.42f));
-        g.fillRect(matchingArea);
-        g.setColour(juce::Colours::white.withAlpha(0.96f));
-        g.setFont(juce::FontOptions(16.0f, juce::Font::bold));
-        g.drawText("GR Matching...", matchingArea, juce::Justification::centred, false);
-    }
-
 }
 
 void QuanpressorAudioProcessorEditor::HistoryGraph::paint(juce::Graphics& g)
@@ -823,8 +1082,18 @@ void QuanpressorAudioProcessorEditor::EmbosOverlay::paint(juce::Graphics& g)
         g.drawImage(grHistoryEmbosImage(), destination, juce::RectanglePlacement::stretchToFit);
 }
 
-void QuanpressorAudioProcessorEditor::NoMeterCurtain::paint(juce::Graphics& g)
+void QuanpressorAudioProcessorEditor::GrMatchingOverlay::paint(juce::Graphics& g)
 {
-    g.drawImage(noMeterCurtainImage(), getLocalBounds().toFloat(),
-                juce::RectanglePlacement::stretchToFit);
+    if (matching == nullptr || !matching->load(std::memory_order_relaxed)
+        || ((juce::Time::getMillisecondCounter() / 400u) % 2u != 0u))
+        return;
+
+    const float bandHeight = 27.0f;
+    const auto matchingArea = juce::Rectangle<float>(0.0f, getHeight() * 0.5f - bandHeight * 0.5f,
+                                                     static_cast<float>(getWidth()), bandHeight);
+    g.setColour(juce::Colours::black.withAlpha(0.42f));
+    g.fillRect(matchingArea);
+    g.setColour(juce::Colours::white.withAlpha(0.96f));
+    g.setFont(juce::FontOptions(12.0f, juce::Font::bold));
+    g.drawText("GR Matching...", matchingArea, juce::Justification::centred, false);
 }

@@ -41,6 +41,7 @@
 		401C8CCC62DBCB9F45AA607B /* include_juce_gui_basics.mm */ = {isa = PBXBuildFile; fileRef = 13D8189FFFE46FA3CDB30AE1; };
 		40CAE78540278F9A5879E3CB /* include_juce_audio_formats.mm */ = {isa = PBXBuildFile; fileRef = BE554ADCB8158BB305F6AEE9; };
 		425F58CFBA59C51DE95E363B /* include_juce_graphics.mm */ = {isa = PBXBuildFile; fileRef = 45CD786BD1A32D23BD6B680F; };
+		42C8ECF348CB299BB740B753 /* include_juce_opengl.mm */ = {isa = PBXBuildFile; fileRef = 39F9A40EC0938B75CE6D1AE4; };
 		48A027A9495A95E0D38234F0 /* include_juce_audio_plugin_client_VST3.mm */ = {isa = PBXBuildFile; fileRef = 8889871E2BDCD1059470C362; };
 		4B7C182DE4BB80AFA0576F89 /* include_juce_audio_plugin_client_Standalone.cpp */ = {isa = PBXBuildFile; fileRef = 6874B34F06DCB19A1A8303AF; };
 		4DB134FF8DA587CD078E9338 /* PluginProcessor.cpp */ = {isa = PBXBuildFile; fileRef = EE5D7D5AFF34EB3055598126; };
@@ -57,6 +58,7 @@
 		87DBAD685DF4CE175E8A7A78 /* AudioToolbox.framework */ = {isa = PBXBuildFile; fileRef = 8E3CFF18E9E321752B2B700F; };
 		893066A1DC2394D2B2C3C5F5 /* VST3 Manifest Helper */ = {isa = PBXBuildFile; fileRef = 61439C4D5956769C31763218; };
 		8AF378E23359DD62A69275E9 /* Security.framework */ = {isa = PBXBuildFile; fileRef = 2A9F0F0902482556AB950B52; };
+		8FE9D442CB05EF7627BA0089 /* MeterPrivacyRenderer.cpp */ = {isa = PBXBuildFile; fileRef = B4F492C7CB0D87C947F6CF72; };
 		962F8A3028766A8B11806338 /* AU */ = {isa = PBXBuildFile; fileRef = 07082D1329ACFC5151568137; };
 		9A2B5966276D84F8E1A28F51 /* include_juce_audio_devices.mm */ = {isa = PBXBuildFile; fileRef = 330A204787244297B16B865A; };
 		9A2C6C4C2D03B6A5CCF7F40A /* BinaryData2.cpp */ = {isa = PBXBuildFile; fileRef = F08F155A0C52FBE78F8AB0A9; };
@@ -73,6 +75,7 @@
 		E0C56A34408F0509CFC94DDB /* RecentFilesMenuTemplate.nib */ = {isa = PBXBuildFile; fileRef = C5B8D94C3F74490E4169C6FF; };
 		EF43036EEB49886B7FF5C6BE /* include_juce_data_structures.mm */ = {isa = PBXBuildFile; fileRef = 8030F08C18FF3176792AA85B; };
 		F756534C61D29A868FCC35FF /* PluginEditor.cpp */ = {isa = PBXBuildFile; fileRef = 7E74461CF479EAD8024F60CE; };
+		F822F0AB516E2CAC29085D86 /* OpenGL.framework */ = {isa = PBXBuildFile; fileRef = 76B83E80329229060DF020E5; };
 		FECDF4E4614ECFA3EEAE13D6 /* include_juce_graphics_Harfbuzz.cpp */ = {isa = PBXBuildFile; fileRef = 368ADF03D718B75060056482; };
 /* End PBXBuildFile section */
 
@@ -99,14 +102,15 @@
 		32CCCD09860356617DE0C82B /* juce_audio_plugin_client */ /* juce_audio_plugin_client */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_audio_plugin_client; path = /Users/shoma/Documents/JUCE/modules/juce_audio_plugin_client; sourceTree = "<absolute>"; };
 		330A204787244297B16B865A /* include_juce_audio_devices.mm */ /* include_juce_audio_devices.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_audio_devices.mm; path = ../../JuceLibraryCode/include_juce_audio_devices.mm; sourceTree = SOURCE_ROOT; };
 		33169C59F84DC33BD67A0779 /* VCA Button_ON.png */ /* VCA Button_ON.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "VCA Button_ON.png"; path = "../../Assets/VCA Button_ON.png"; sourceTree = SOURCE_ROOT; };
-		34BAF50B13F68BCAF87AB56D /* NoMeterCurtain.png */ /* NoMeterCurtain.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = NoMeterCurtain.png; path = ../../Assets/NoMeterCurtain.png; sourceTree = SOURCE_ROOT; };
 		34DAEED0CBABCF42839E8971 /* include_juce_dsp.mm */ /* include_juce_dsp.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_dsp.mm; path = ../../JuceLibraryCode/include_juce_dsp.mm; sourceTree = SOURCE_ROOT; };
 		359B844260FB44ED4C807B66 /* juce_audio_basics */ /* juce_audio_basics */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_audio_basics; path = /Users/shoma/Documents/JUCE/modules/juce_audio_basics; sourceTree = "<absolute>"; };
 		360B0039FCB5F7C8E58D4958 /* ST Chain_ON.png */ /* ST Chain_ON.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "ST Chain_ON.png"; path = "../../Assets/ST Chain_ON.png"; sourceTree = SOURCE_ROOT; };
 		368ADF03D718B75060056482 /* include_juce_graphics_Harfbuzz.cpp */ /* include_juce_graphics_Harfbuzz.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = include_juce_graphics_Harfbuzz.cpp; path = ../../JuceLibraryCode/include_juce_graphics_Harfbuzz.cpp; sourceTree = SOURCE_ROOT; };
+		39F9A40EC0938B75CE6D1AE4 /* include_juce_opengl.mm */ /* include_juce_opengl.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_opengl.mm; path = ../../JuceLibraryCode/include_juce_opengl.mm; sourceTree = SOURCE_ROOT; };
 		44BF2A1658A3FFA8824154E6 /* Metal.framework */ /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
 		45CD786BD1A32D23BD6B680F /* include_juce_graphics.mm */ /* include_juce_graphics.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_graphics.mm; path = ../../JuceLibraryCode/include_juce_graphics.mm; sourceTree = SOURCE_ROOT; };
 		4AE962EEA5BBCCE12DE39A03 /* Auto Release Button_ON.png */ /* Auto Release Button_ON.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Auto Release Button_ON.png"; path = "../../Assets/Auto Release Button_ON.png"; sourceTree = SOURCE_ROOT; };
+		4B7FF0D794D49575AFF08422 /* MeterPrivacyRenderer.h */ /* MeterPrivacyRenderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MeterPrivacyRenderer.h; path = ../../Source/MeterPrivacyRenderer.h; sourceTree = SOURCE_ROOT; };
 		4D0195656D4EE9A13F8C1987 /* include_juce_audio_processors.mm */ /* include_juce_audio_processors.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_audio_processors.mm; path = ../../JuceLibraryCode/include_juce_audio_processors.mm; sourceTree = SOURCE_ROOT; };
 		4EBD8984EDFAF2DDC2033999 /* juce_gui_extra */ /* juce_gui_extra */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_gui_extra; path = /Users/shoma/Documents/JUCE/modules/juce_gui_extra; sourceTree = "<absolute>"; };
 		4FDF3B2F1CA77F5E14E63DC3 /* juce_audio_formats */ /* juce_audio_formats */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_audio_formats; path = /Users/shoma/Documents/JUCE/modules/juce_audio_formats; sourceTree = "<absolute>"; };
@@ -126,6 +130,7 @@
 		6D4FAB61F7FD0263F7E9D5A7 /* CoreMIDI.framework */ /* CoreMIDI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMIDI.framework; path = System/Library/Frameworks/CoreMIDI.framework; sourceTree = SDKROOT; };
 		75607C0F3B3F0CF7AB501006 /* juce_VST3ManifestHelper.mm */ /* juce_VST3ManifestHelper.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = juce_VST3ManifestHelper.mm; path = /Users/shoma/Documents/JUCE/modules/juce_audio_plugin_client/VST3/juce_VST3ManifestHelper.mm; sourceTree = "<absolute>"; };
 		76AC3D8A9F7C7A0B63C1E9F0 /* juce_audio_devices */ /* juce_audio_devices */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_audio_devices; path = /Users/shoma/Documents/JUCE/modules/juce_audio_devices; sourceTree = "<absolute>"; };
+		76B83E80329229060DF020E5 /* OpenGL.framework */ /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		78895B3E45EA75D2E37CD484 /* Accelerate.framework */ /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		7E74461CF479EAD8024F60CE /* PluginEditor.cpp */ /* PluginEditor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PluginEditor.cpp; path = ../../Source/PluginEditor.cpp; sourceTree = SOURCE_ROOT; };
 		7EEF4E8F6BFAEF0D14197C1A /* include_juce_gui_extra.mm */ /* include_juce_gui_extra.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_gui_extra.mm; path = ../../JuceLibraryCode/include_juce_gui_extra.mm; sourceTree = SOURCE_ROOT; };
@@ -157,6 +162,8 @@
 		AD8EEF5986CF4976CC48CFB8 /* VU_INPUTmode.png */ /* VU_INPUTmode.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = VU_INPUTmode.png; path = ../../Assets/VU_INPUTmode.png; sourceTree = SOURCE_ROOT; };
 		AFCFE8FD58E5799E3653ED83 /* KnobReflectOver.png */ /* KnobReflectOver.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = KnobReflectOver.png; path = ../../Assets/KnobReflectOver.png; sourceTree = SOURCE_ROOT; };
 		B114BABDBBA799756FE78F80 /* VU_OUTPUTmode_ON.png */ /* VU_OUTPUTmode_ON.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = VU_OUTPUTmode_ON.png; path = ../../Assets/VU_OUTPUTmode_ON.png; sourceTree = SOURCE_ROOT; };
+		B4F492C7CB0D87C947F6CF72 /* MeterPrivacyRenderer.cpp */ /* MeterPrivacyRenderer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = MeterPrivacyRenderer.cpp; path = ../../Source/MeterPrivacyRenderer.cpp; sourceTree = SOURCE_ROOT; };
+		B82686B20C864711427721ED /* juce_opengl */ /* juce_opengl */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_opengl; path = /Users/shoma/Documents/JUCE/modules/juce_opengl; sourceTree = "<absolute>"; };
 		BBDEC68606F957C958059AA0 /* CoreAudioKit.framework */ /* CoreAudioKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudioKit.framework; path = System/Library/Frameworks/CoreAudioKit.framework; sourceTree = SDKROOT; };
 		BCB5BADC94975C332E3732DC /* PluginEditor.h */ /* PluginEditor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PluginEditor.h; path = ../../Source/PluginEditor.h; sourceTree = SOURCE_ROOT; };
 		BE554ADCB8158BB305F6AEE9 /* include_juce_audio_formats.mm */ /* include_juce_audio_formats.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_audio_formats.mm; path = ../../JuceLibraryCode/include_juce_audio_formats.mm; sourceTree = SOURCE_ROOT; };
@@ -211,6 +218,7 @@
 				75350A4B3FCBA51AE1EE1396,
 				1D46ED61492B6698CBDB05BD,
 				7E1B9E7AC1FD7EBC8C0E9D6B,
+				F822F0AB516E2CAC29085D86,
 				A02B6B17AB108531240FAC48,
 				8AF378E23359DD62A69275E9,
 				3CD55DA7BAACB9ED1968449E,
@@ -232,6 +240,7 @@
 				75350A4B3FCBA51AE1EE1396,
 				1D46ED61492B6698CBDB05BD,
 				7E1B9E7AC1FD7EBC8C0E9D6B,
+				F822F0AB516E2CAC29085D86,
 				A02B6B17AB108531240FAC48,
 				8AF378E23359DD62A69275E9,
 				3CD55DA7BAACB9ED1968449E,
@@ -253,6 +262,7 @@
 				75350A4B3FCBA51AE1EE1396,
 				1D46ED61492B6698CBDB05BD,
 				7E1B9E7AC1FD7EBC8C0E9D6B,
+				F822F0AB516E2CAC29085D86,
 				A02B6B17AB108531240FAC48,
 				8AF378E23359DD62A69275E9,
 				3CD55DA7BAACB9ED1968449E,
@@ -274,6 +284,7 @@
 				75350A4B3FCBA51AE1EE1396,
 				1D46ED61492B6698CBDB05BD,
 				7E1B9E7AC1FD7EBC8C0E9D6B,
+				F822F0AB516E2CAC29085D86,
 				A02B6B17AB108531240FAC48,
 				8AF378E23359DD62A69275E9,
 				3CD55DA7BAACB9ED1968449E,
@@ -301,6 +312,8 @@
 			isa = PBXGroup;
 			children = (
 				217B3CD4784A03F7E5845C33,
+				B4F492C7CB0D87C947F6CF72,
+				4B7FF0D794D49575AFF08422,
 				7E74461CF479EAD8024F60CE,
 				BCB5BADC94975C332E3732DC,
 				EE5D7D5AFF34EB3055598126,
@@ -351,6 +364,7 @@
 				A943E616A3F27C18E76889EB,
 				13D8189FFFE46FA3CDB30AE1,
 				7EEF4E8F6BFAEF0D14197C1A,
+				39F9A40EC0938B75CE6D1AE4,
 				A202CCC669B90D8A2ED6CD34,
 				9371C62AB262DA5CB9B6D0A0,
 			);
@@ -379,6 +393,7 @@
 				0AE89DAB465730DD13F9288A,
 				2FAB93AD111EF86DE61BC847,
 				CDF63931CD5F679A890A1AA8,
+				76B83E80329229060DF020E5,
 				AAA07B6BCF76513A7591C20A,
 				2A9F0F0902482556AB950B52,
 				86DCCB77ED90CFE9826CAE78,
@@ -415,7 +430,6 @@
 				AFCFE8FD58E5799E3653ED83,
 				6320D707211765338C26A592,
 				30F8535624F2E91D69D84F30,
-				34BAF50B13F68BCAF87AB56D,
 				13BD33E108D30D502AE51254,
 				1E8F2D1EF9B16646FB0AD53F,
 				0436AAB673EB81ECDEF57FCA,
@@ -468,6 +482,7 @@
 				56DE0A3030885B29F1F8FC84,
 				9E6F4460759E62011D5A9A9D,
 				4EBD8984EDFAF2DDC2033999,
+				B82686B20C864711427721ED,
 			);
 			name = "JUCE Modules";
 			sourceTree = "<group>";
@@ -797,6 +812,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8FE9D442CB05EF7627BA0089,
 				F756534C61D29A868FCC35FF,
 				4DB134FF8DA587CD078E9338,
 				A2875214A74FB69213DB7763,
@@ -820,6 +836,7 @@
 				32ED7D827E92DEC0EECE9F28,
 				401C8CCC62DBCB9F45AA607B,
 				587E17FB225CB49AF4F7DCA9,
+				42C8ECF348CB299BB740B753,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -928,6 +945,7 @@
 					"JUCE_MODULE_AVAILABLE_juce_graphics=1",
 					"JUCE_MODULE_AVAILABLE_juce_gui_basics=1",
 					"JUCE_MODULE_AVAILABLE_juce_gui_extra=1",
+					"JUCE_MODULE_AVAILABLE_juce_opengl=1",
 					"JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1",
 					"JUCE_VST3_CAN_REPLACE_VST2=0",
 					"JUCE_USE_CURL=0",
@@ -1005,6 +1023,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.soundrave.quanpressor;
 				PRODUCT_NAME = "Quanpressor";
 				USE_HEADERMAP = NO;
+				VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS = OpenGL;
 				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
 			};
 			name = Debug;
@@ -1039,6 +1058,7 @@
 					"JUCE_MODULE_AVAILABLE_juce_graphics=1",
 					"JUCE_MODULE_AVAILABLE_juce_gui_basics=1",
 					"JUCE_MODULE_AVAILABLE_juce_gui_extra=1",
+					"JUCE_MODULE_AVAILABLE_juce_opengl=1",
 					"JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1",
 					"JUCE_VST3_CAN_REPLACE_VST2=0",
 					"JUCE_USE_CURL=0",
@@ -1115,6 +1135,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.soundrave.quanpressor;
 				PRODUCT_NAME = "juce_vst3_helper";
 				USE_HEADERMAP = NO;
+				VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS = OpenGL;
 				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
 			};
 			name = Debug;
@@ -1157,6 +1178,7 @@
 					"JUCE_MODULE_AVAILABLE_juce_graphics=1",
 					"JUCE_MODULE_AVAILABLE_juce_gui_basics=1",
 					"JUCE_MODULE_AVAILABLE_juce_gui_extra=1",
+					"JUCE_MODULE_AVAILABLE_juce_opengl=1",
 					"JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1",
 					"JUCE_VST3_CAN_REPLACE_VST2=0",
 					"JUCE_USE_CURL=0",
@@ -1235,6 +1257,7 @@
 				PRODUCT_NAME = "Quanpressor";
 				SKIP_INSTALL = YES;
 				USE_HEADERMAP = NO;
+				VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS = OpenGL;
 				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
 			};
 			name = Release;
@@ -1374,6 +1397,7 @@
 					"JUCE_MODULE_AVAILABLE_juce_graphics=1",
 					"JUCE_MODULE_AVAILABLE_juce_gui_basics=1",
 					"JUCE_MODULE_AVAILABLE_juce_gui_extra=1",
+					"JUCE_MODULE_AVAILABLE_juce_opengl=1",
 					"JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1",
 					"JUCE_VST3_CAN_REPLACE_VST2=0",
 					"JUCE_USE_CURL=0",
@@ -1455,6 +1479,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.soundrave.quanpressor;
 				PRODUCT_NAME = "Quanpressor";
 				USE_HEADERMAP = NO;
+				VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS = OpenGL;
 				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
 				WRAPPER_EXTENSION = component;
 			};
@@ -1490,6 +1515,7 @@
 					"JUCE_MODULE_AVAILABLE_juce_graphics=1",
 					"JUCE_MODULE_AVAILABLE_juce_gui_basics=1",
 					"JUCE_MODULE_AVAILABLE_juce_gui_extra=1",
+					"JUCE_MODULE_AVAILABLE_juce_opengl=1",
 					"JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1",
 					"JUCE_VST3_CAN_REPLACE_VST2=0",
 					"JUCE_USE_CURL=0",
@@ -1567,6 +1593,7 @@
 				PRODUCT_NAME = "Quanpressor";
 				SKIP_INSTALL = YES;
 				USE_HEADERMAP = NO;
+				VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS = OpenGL;
 				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
 			};
 			name = Debug;
@@ -1601,6 +1628,7 @@
 					"JUCE_MODULE_AVAILABLE_juce_graphics=1",
 					"JUCE_MODULE_AVAILABLE_juce_gui_basics=1",
 					"JUCE_MODULE_AVAILABLE_juce_gui_extra=1",
+					"JUCE_MODULE_AVAILABLE_juce_opengl=1",
 					"JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1",
 					"JUCE_VST3_CAN_REPLACE_VST2=0",
 					"JUCE_USE_CURL=0",
@@ -1679,6 +1707,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.soundrave.quanpressor;
 				PRODUCT_NAME = "Quanpressor";
 				USE_HEADERMAP = NO;
+				VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS = OpenGL;
 				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
 			};
 			name = Release;
@@ -1713,6 +1742,7 @@
 					"JUCE_MODULE_AVAILABLE_juce_graphics=1",
 					"JUCE_MODULE_AVAILABLE_juce_gui_basics=1",
 					"JUCE_MODULE_AVAILABLE_juce_gui_extra=1",
+					"JUCE_MODULE_AVAILABLE_juce_opengl=1",
 					"JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1",
 					"JUCE_VST3_CAN_REPLACE_VST2=0",
 					"JUCE_USE_CURL=0",
@@ -1795,6 +1825,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.soundrave.quanpressor;
 				PRODUCT_NAME = "Quanpressor";
 				USE_HEADERMAP = NO;
+				VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS = OpenGL;
 				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
 				WRAPPER_EXTENSION = component;
 			};
@@ -1830,6 +1861,7 @@
 					"JUCE_MODULE_AVAILABLE_juce_graphics=1",
 					"JUCE_MODULE_AVAILABLE_juce_gui_basics=1",
 					"JUCE_MODULE_AVAILABLE_juce_gui_extra=1",
+					"JUCE_MODULE_AVAILABLE_juce_opengl=1",
 					"JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1",
 					"JUCE_VST3_CAN_REPLACE_VST2=0",
 					"JUCE_USE_CURL=0",
@@ -1907,6 +1939,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.soundrave.quanpressor;
 				PRODUCT_NAME = "juce_vst3_helper";
 				USE_HEADERMAP = NO;
+				VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS = OpenGL;
 				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
 			};
 			name = Release;
@@ -1941,6 +1974,7 @@
 					"JUCE_MODULE_AVAILABLE_juce_graphics=1",
 					"JUCE_MODULE_AVAILABLE_juce_gui_basics=1",
 					"JUCE_MODULE_AVAILABLE_juce_gui_extra=1",
+					"JUCE_MODULE_AVAILABLE_juce_opengl=1",
 					"JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1",
 					"JUCE_VST3_CAN_REPLACE_VST2=0",
 					"JUCE_USE_CURL=0",
@@ -2022,6 +2056,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.soundrave.quanpressor;
 				PRODUCT_NAME = "Quanpressor";
 				USE_HEADERMAP = NO;
+				VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS = OpenGL;
 				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
 				WRAPPER_EXTENSION = vst3;
 			};
@@ -2057,6 +2092,7 @@
 					"JUCE_MODULE_AVAILABLE_juce_graphics=1",
 					"JUCE_MODULE_AVAILABLE_juce_gui_basics=1",
 					"JUCE_MODULE_AVAILABLE_juce_gui_extra=1",
+					"JUCE_MODULE_AVAILABLE_juce_opengl=1",
 					"JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1",
 					"JUCE_VST3_CAN_REPLACE_VST2=0",
 					"JUCE_USE_CURL=0",
@@ -2137,6 +2173,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.soundrave.quanpressor;
 				PRODUCT_NAME = "Quanpressor";
 				USE_HEADERMAP = NO;
+				VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS = OpenGL;
 				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
 				WRAPPER_EXTENSION = vst3;
 			};

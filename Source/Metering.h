@@ -4,12 +4,14 @@
 
 struct QuanpressorMeters
 {
-    std::atomic<float> inputDb {-100.0f};
-    std::atomic<float> inputRmsDb {-100.0f};
-    std::atomic<float> outputDb {-100.0f};
-    std::atomic<float> outputRmsDb {-100.0f};
+    std::array<std::atomic<float>, 2> inputDb;
+    std::array<std::atomic<float>, 2> inputRmsDb;
+    std::array<std::atomic<float>, 2> outputDb;
+    std::array<std::atomic<float>, 2> outputRmsDb;
+    std::array<std::atomic<float>, 2> inputVuDb;
+    std::array<std::atomic<float>, 2> outputVuDb;
+    std::array<std::atomic<float>, 2> grVuDb;
     std::atomic<float> grDb {0.0f};
-    std::atomic<float> vuDb {-100.0f};
     std::atomic<float> graphInputDb {-100.0f};
     std::atomic<float> graphGainDb {0.0f};
     std::atomic<float> effectiveThresholdDb {-18.0f};
@@ -19,6 +21,17 @@ struct QuanpressorMeters
 
     QuanpressorMeters()
     {
+        for (auto* pair : { &inputDb, &inputRmsDb, &outputDb, &outputRmsDb })
+            for (auto& value : *pair)
+                value.store(-100.0f, std::memory_order_relaxed);
+
+        for (auto* pair : { &inputVuDb, &outputVuDb })
+            for (auto& value : *pair)
+                value.store(-60.0f, std::memory_order_relaxed);
+
+        for (auto& value : grVuDb)
+            value.store(0.0f, std::memory_order_relaxed);
+
         for (auto& v : history)
             v.store(0.0f);
     }

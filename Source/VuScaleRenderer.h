@@ -6,6 +6,12 @@
 class VuScaleRenderer
 {
 public:
+    enum class Mode
+    {
+        level,
+        gainReduction
+    };
+
     struct Mark
     {
         float db;
@@ -23,6 +29,17 @@ public:
         {   1.0f, 313.00f, "+1" },
         {   2.0f, 325.00f, "+2" },
         {   3.0f, 338.00f, "+3" }
+    }};
+
+    static constexpr std::array<Mark, 8> gainReductionMarks {{
+        { -20.0f, 202.0f, "20" },
+        { -10.0f, 239.0f, "10" },
+        {  -7.0f, 254.0f, "7" },
+        {  -5.0f, 270.0f, "5" },
+        {  -3.0f, 292.0f, "3" },
+        {  -2.0f, 306.0f, "2" },
+        {  -1.0f, 321.0f, "1" },
+        {   0.0f, 338.0f, "0" }
     }};
 
     static float angleForVu(float db)
@@ -45,7 +62,23 @@ public:
         return juce::degreesToRadians(marks.back().degrees);
     }
 
-    static void draw(juce::Graphics& g, juce::Rectangle<float> bounds)
+    static float angleForGainReduction(float db)
+    {
+        const float clamped = juce::jlimit(gainReductionMarks.front().db, gainReductionMarks.back().db, db);
+        for (size_t i = 0; i + 1 < gainReductionMarks.size(); ++i)
+        {
+            if (clamped <= gainReductionMarks[i + 1].db)
+            {
+                const float t = juce::jmap(clamped, gainReductionMarks[i].db, gainReductionMarks[i + 1].db, 0.0f, 1.0f);
+                return juce::degreesToRadians(juce::jmap(t, gainReductionMarks[i].degrees,
+                                                          gainReductionMarks[i + 1].degrees));
+            }
+        }
+
+        return juce::degreesToRadians(gainReductionMarks.back().degrees);
+    }
+
+    static void draw(juce::Graphics& g, juce::Rectangle<float> bounds, Mode mode = Mode::level)
     {
         constexpr float designWidth = 330.0f;
         constexpr float designHeight = 168.0f;
@@ -76,8 +109,43 @@ public:
                 g.drawLine({ p(s.x1, s.y1), p(s.x2, s.y2) }, width * juce::jmin(sx, sy));
             }
         };
-        drawStrokes(minor, 1.25f);
-        drawStrokes(major, 2.0f);
+
+        const auto grRayPoint = [=](float degrees, float inset)
+        {
+            constexpr juce::Point<float> needleCentre { 165.0f, designHeight * 0.88f };
+            constexpr juce::Point<float> scaleCentre { 165.0f, designHeight * 0.68f };
+            constexpr float radiusX = designWidth * 0.47f;
+            constexpr float radiusY = designHeight * 0.64f;
+            const float angle = juce::degreesToRadians(degrees);
+            const juce::Point<float> direction { std::cos(angle), std::sin(angle) };
+            const auto origin = needleCentre - scaleCentre;
+            const float rx2 = radiusX * radiusX;
+            const float ry2 = radiusY * radiusY;
+            const float a = direction.x * direction.x / rx2 + direction.y * direction.y / ry2;
+            const float b = 2.0f * (origin.x * direction.x / rx2 + origin.y * direction.y / ry2);
+            const float c = origin.x * origin.x / rx2 + origin.y * origin.y / ry2 - 1.0f;
+            const float outerDistance = (-b + std::sqrt(juce::jmax(0.0f, b * b - 4.0f * a * c)))
+                                      / (2.0f * a);
+            const float distance = juce::jmax(0.0f, outerDistance - inset);
+            return p(needleCentre.x + direction.x * distance,
+                     needleCentre.y + direction.y * distance);
+        };
+
+        if (mode == Mode::level)
+        {
+            drawStrokes(minor, 1.25f);
+            drawStrokes(major, 2.0f);
+        }
+        else
+        {
+            g.setColour(juce::Colour::fromRGB(28, 28, 28));
+            for (const auto& mark : gainReductionMarks)
+            {
+                const auto outer = grRayPoint(mark.degrees, 0.0f);
+                const auto inner = grRayPoint(mark.degrees, 15.0f);
+                g.drawLine({ inner, outer }, 2.0f * juce::jmin(sx, sy));
+            }
+        }
 
         static constexpr juce::Point<float> labelPositions[] = {
             { 53.83f, 102.92f }, { 110.22f, 56.67f }, { 137.13f, 50.63f },
@@ -85,13 +153,27 @@ public:
             { 241.44f, 65.87f }, { 261.28f, 80.42f }, { 276.17f, 102.92f }
         };
         g.setFont(12.0f * juce::jmin(sx, sy));
-        for (size_t i = 0; i < marks.size(); ++i)
+        if (mode == Mode::level)
         {
-            g.setColour(juce::Colour::fromRGB(i >= 5 ? 174 : 32, i >= 5 ? 28 : 32, i >= 5 ? 32 : 32));
-            const auto centre = p(labelPositions[i].x, labelPositions[i].y);
-            g.drawText(marks[i].label, juce::Rectangle<float>(centre.x - 18.0f * sx, centre.y - 8.0f * sy,
-                                                              36.0f * sx, 16.0f * sy),
-                       juce::Justification::centred, false);
+            for (size_t i = 0; i < marks.size(); ++i)
+            {
+                g.setColour(juce::Colour::fromRGB(i >= 5 ? 174 : 32, i >= 5 ? 28 : 32, i >= 5 ? 32 : 32));
+                const auto centre = p(labelPositions[i].x, labelPositions[i].y);
+                g.drawText(marks[i].label, juce::Rectangle<float>(centre.x - 18.0f * sx, centre.y - 8.0f * sy,
+                                                                  36.0f * sx, 16.0f * sy),
+                           juce::Justification::centred, false);
+            }
+        }
+        else
+        {
+            g.setColour(juce::Colour::fromRGB(32, 32, 32));
+            for (const auto& mark : gainReductionMarks)
+            {
+                const auto centre = grRayPoint(mark.degrees, 30.0f);
+                g.drawText(mark.label, juce::Rectangle<float>(centre.x - 18.0f * sx, centre.y - 8.0f * sy,
+                                                               36.0f * sx, 16.0f * sy),
+                           juce::Justification::centred, false);
+            }
         }
     }
 };

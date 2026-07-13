@@ -4,10 +4,13 @@
 #include <array>
 #include "PluginProcessor.h"
 
+class MeterPrivacyRenderer;
+
 class QuanpressorAudioProcessorEditor : public juce::AudioProcessorEditor, private juce::Timer
 {
 public:
     explicit QuanpressorAudioProcessorEditor(QuanpressorAudioProcessor&);
+    ~QuanpressorAudioProcessorEditor() override;
     void paint(juce::Graphics&) override;
     void resized() override;
 
@@ -58,7 +61,11 @@ public:
 
     struct ImageButton : juce::Button
     {
-        enum class Kind { Fet, Opto, Vca, VariMu, GrMatch, AutoRelease, AutoGain, StChain, ScFilter, ResetPhotocell };
+        enum class Kind
+        {
+            Fet, Opto, Vca, VariMu, GrMatch, AutoRelease, AutoGain, StChain, ScFilter, ResetPhotocell,
+            VuOutput, VuInput, VuGr, NoMeter
+        };
 
         explicit ImageButton(const juce::String& name) : juce::Button(name) {}
         Kind kind = Kind::Fet;
@@ -69,7 +76,11 @@ private:
     struct Meter : juce::Component
     {
         std::atomic<float>* value{};
-        std::atomic<float>* rmsValue{};
+        std::array<std::atomic<float>*, 2> peakValues {};
+        std::array<std::atomic<float>*, 2> rmsValues {};
+        std::array<float, 2> heldPeakDb {{ -100.0f, -100.0f }};
+        std::array<double, 2> holdUntilMs {};
+        double lastHoldUpdateMs = 0.0;
         bool gr = false;
         juce::String title;
         void paint(juce::Graphics&) override;
@@ -77,7 +88,12 @@ private:
 
     struct VuMeter : juce::Component
     {
-        std::atomic<float>* value{};
+        enum class Mode { output = 0, input = 1, gainReduction = 2 };
+
+        std::atomic<float>* outputValue{};
+        std::atomic<float>* inputValue{};
+        std::atomic<float>* grValue{};
+        Mode mode = Mode::output;
         void paint(juce::Graphics&) override;
     };
 
@@ -106,15 +122,18 @@ private:
         void paint(juce::Graphics&) override;
     };
 
-    struct NoMeterCurtain : juce::Component
+    struct GrMatchingOverlay : juce::Component
     {
-        NoMeterCurtain() { setInterceptsMouseClicks(false, false); }
+        GrMatchingOverlay() { setInterceptsMouseClicks(false, false); }
+        std::atomic<bool>* matching{};
         void paint(juce::Graphics&) override;
     };
 
     void timerCallback() override;
     void updateArchitectureControls();
     void setModeFromButton(int index);
+    void setVuModeFromButton(int index);
+    void updateMeterPrivacy(bool enabled, bool forceCapture = false);
     void addKnob(Knob&, const char*);
 
     QuanpressorAudioProcessor& proc;
@@ -126,23 +145,32 @@ private:
         ImageButton { "VCA" },
         ImageButton { "Vari-Mu" }
     };
+    std::array<ImageButton, 3> vuModeButtons {
+        ImageButton { "VU OUTPUT" },
+        ImageButton { "VU INPUT" },
+        ImageButton { "VU GR" }
+    };
     ImageButton autoLevel { "AUTO GAIN" };
     ImageButton autoRelease { "AUTO RELEASE" };
     ImageButton grMatch { "GR MATCH" };
     ImageButton sidechainHpf { "SC FILTER" };
     ImageButton stereoChain { "ST CHAIN" };
     ImageButton optoReset { "RESET PHOTOCELL" };
+    ImageButton noMeter { "NO METER" };
 
     Knob input, threshold, ratio, drive, attack, release, knee, makeup;
     Knob highFreq, highAmt, lowFreq, lowAmt, output, mix, timeConstant;
 
     Meter inMeter, outMeter, grMeter;
-    VuMeter vuMeter;
+    std::array<VuMeter, 2> vuMeters;
     Graph graph;
     HistoryGraph historyGraph;
     EmbosOverlay grCurveEmbos;
     EmbosOverlay grHistoryEmbos;
-    NoMeterCurtain noMeterCurtain;
+    GrMatchingOverlay grMatchingOverlay;
+    std::array<std::unique_ptr<MeterPrivacyRenderer>, 2> meterPrivacyRenderers;
+    bool meterPrivacyEnabled = false;
+    int meterPrivacyCaptureCounter = 0;
 
     std::vector<std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>> sa;
     std::vector<std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment>> ca;

@@ -30,12 +30,13 @@ private:
 
     QuanpressorDSP dsp;
     int historyCounter = 0;
-    OutputVuBallistics outputVu;
+    std::array<OutputVuBallistics, 2> inputVu;
+    std::array<OutputVuBallistics, 2> outputVu;
     float graphDetectorDb = -100.0f;
-    float inputPeakBallisticDb = -100.0f;
-    float outputPeakBallisticDb = -100.0f;
-    float inputRmsBallisticDb = -100.0f;
-    float outputRmsBallisticDb = -100.0f;
+    std::array<float, 2> inputPeakBallisticDb {{ -100.0f, -100.0f }};
+    std::array<float, 2> outputPeakBallisticDb {{ -100.0f, -100.0f }};
+    std::array<float, 2> inputRmsBallisticDb {{ -100.0f, -100.0f }};
+    std::array<float, 2> outputRmsBallisticDb {{ -100.0f, -100.0f }};
     std::array<float, 4> grMatchAverageDb {};
     QuanpressorDSP::Mode previousGrMatchMode = QuanpressorDSP::FET;
     float grMatchTargetDb = 0.0f;

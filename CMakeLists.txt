@@ -21,10 +21,13 @@ juce_add_plugin(Quanpressor
 target_sources(Quanpressor PRIVATE
     Source/PluginProcessor.cpp Source/PluginProcessor.h
     Source/PluginEditor.cpp Source/PluginEditor.h
-    Source/QuanpressorDSP.h Source/Metering.h)
+    Source/MeterPrivacyRenderer.cpp Source/MeterPrivacyRenderer.h
+    Source/QuanpressorDSP.h Source/Metering.h
+    JuceLibraryCode/BinaryData.cpp JuceLibraryCode/BinaryData2.cpp
+    JuceLibraryCode/BinaryData.h)
 
 target_include_directories(Quanpressor PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/Patina)
 
 target_compile_definitions(Quanpressor PUBLIC JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0 JUCE_VST3_CAN_REPLACE_VST2=0)
 
-target_link_libraries(Quanpressor PRIVATE juce::juce_audio_utils juce::juce_dsp PUBLIC juce::juce_recommended_config_flags juce::juce_recommended_lto_flags juce::juce_recommended_warning_flags)
+target_link_libraries(Quanpressor PRIVATE juce::juce_audio_utils juce::juce_dsp juce::juce_opengl PUBLIC juce::juce_recommended_config_flags juce::juce_recommended_lto_flags juce::juce_recommended_warning_flags)

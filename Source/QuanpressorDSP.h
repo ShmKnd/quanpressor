@@ -94,6 +94,7 @@ public:
         currentMode = requestedMode = oldMode = FET;
         xfadeRemaining = 0;
         smoothedGrDb = 0.0f;
+        smoothedGrDbByChannel.fill(0.0f);
         autoGainDb = 0.0f;
         previousAutoEnabled = false;
         previousStereoChain = false;
@@ -122,7 +123,10 @@ public:
                 e.photo.reset();
             modeAverageGr[(size_t) OPTO] = 0.0f;
             if (currentMode == OPTO)
+            {
                 smoothedGrDb = 0.0f;
+                smoothedGrDbByChannel.fill(0.0f);
+            }
         }
 
         if (c.stereoChain && !previousStereoChain)
@@ -186,7 +190,9 @@ public:
         copyBuffer(modeInput, inputReference, channels, n);
         const float effectiveThreshold = juce::jlimit(-48.0f, 0.0f, c.thresholdDb);
         displayThresholdDb.store(effectiveThreshold, std::memory_order_relaxed);
-        const float newGr = processMode(buffer, detectorBuffer, currentMode, c, effectiveThreshold);
+        std::array<float, 2> newGrByChannel {};
+        const float newGr = processMode(buffer, detectorBuffer, currentMode, c, effectiveThreshold,
+                                        &newGrByChannel);
 
         double oldSq = 0.0, newSq = bufferEnergy(buffer, channels, n);
         if (xfadeRemaining > 0)
@@ -334,10 +340,20 @@ public:
             * (newGr - modeAverageGr[(size_t) currentMode]);
         const float meterAlpha = 1.0f - std::exp(-blockSeconds / 0.08f);
         smoothedGrDb += meterAlpha * (newGr - smoothedGrDb);
+        for (size_t ch = 0; ch < smoothedGrDbByChannel.size(); ++ch)
+        {
+            const float target = static_cast<int>(ch) < channels ? newGrByChannel[ch]
+                                                                 : newGrByChannel[0];
+            smoothedGrDbByChannel[ch] += meterAlpha * (target - smoothedGrDbByChannel[ch]);
+        }
 
     }
 
     float getGrDb() const noexcept { return smoothedGrDb; }
+    float getGrDbForChannel(int channel) const noexcept
+    {
+        return smoothedGrDbByChannel[static_cast<size_t>(juce::jlimit(0, 1, channel))];
+    }
     float getEffectiveThresholdDb() const noexcept { return displayThresholdDb.load(std::memory_order_relaxed); }
     float getGraphGainDb() const noexcept { return displayGraphGainDb.load(std::memory_order_relaxed); }
 
@@ -394,11 +410,14 @@ private:
     float processMode(juce::AudioBuffer<float>& b,
                       const juce::AudioBuffer<float>& detector,
                       Mode mode, const Controls& c,
-                      float effectiveThresholdDb)
+                      float effectiveThresholdDb,
+                      std::array<float, 2>* channelGrDb = nullptr)
     {
         auto& e = engines[(size_t) mode];
         double grSum = 0.0;
         int grCount = 0;
+        std::array<double, 2> channelGrSum {};
+        std::array<int, 2> channelGrCount {};
 
         const float attackPosition = juce::jlimit(0.0f, 1.0f,
             (c.attackMs - 0.02f) / (100.0f - 0.02f));
@@ -549,8 +568,26 @@ private:
                 }
                 grSum += juce::jmin(0.0f, grDb);
                 ++grCount;
+                if (ch < static_cast<int>(channelGrSum.size()))
+                {
+                    channelGrSum[static_cast<size_t>(ch)] += juce::jmin(0.0f, grDb);
+                    ++channelGrCount[static_cast<size_t>(ch)];
+                }
             }
         }
+
+        if (channelGrDb != nullptr)
+        {
+            for (size_t ch = 0; ch < channelGrDb->size(); ++ch)
+            {
+                if (channelGrCount[ch] > 0)
+                    (*channelGrDb)[ch] = static_cast<float>(channelGrSum[ch]
+                                                          / static_cast<double>(channelGrCount[ch]));
+                else
+                    (*channelGrDb)[ch] = ch > 0 ? (*channelGrDb)[0] : 0.0f;
+            }
+        }
+
         return grCount > 0 ? (float) (grSum / (double) grCount) : 0.0f;
     }
 
@@ -566,6 +603,7 @@ private:
     Mode currentMode = FET, requestedMode = FET, oldMode = FET;
     int xfadeRemaining = 0;
     float smoothedGrDb = 0.0f;
+    std::array<float, 2> smoothedGrDbByChannel {};
     float autoGainDb = 0.0f;
     bool previousAutoEnabled = false;
     bool previousStereoChain = false;

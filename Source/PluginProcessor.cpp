@@ -3,6 +3,17 @@
 
 namespace
 {
+    void updateMeterBallistic(float targetDb, float& stateDb, std::atomic<float>& destination,
+                              int samples, double sampleRate,
+                              float attackSeconds, float releaseSeconds)
+    {
+        const float timeSeconds = targetDb > stateDb ? attackSeconds : releaseSeconds;
+        const float alpha = 1.0f - std::exp(-static_cast<float>(samples)
+                                          / static_cast<float>(sampleRate * timeSeconds));
+        stateDb += alpha * (targetDb - stateDb);
+        destination.store(stateDb, std::memory_order_relaxed);
+    }
+
     float optoThresholdForTargetGr(float inputPeakDb, float targetGrDb, float ratio)
     {
         const float inputLinear = juce::Decibels::decibelsToGain(inputPeakDb);
@@ -34,6 +45,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout QuanpressorAudioProcessor::m
     add("lowFreq","Low Bleed",30,600,1,120," Hz"); add("lowAmt","Low Amount",0,1,0.001f,0); add("output","Output",-24,24,0.1f,0," dB");
     add("mix","Mix",0,100,0.1f,100," %");
     p.push_back(std::make_unique<AudioParameterChoice>("muSpeed","Time Constant",StringArray{"1","2","3","4","5","6"},2));
+    p.push_back(std::make_unique<AudioParameterChoice>("vuMode","VU Mode",StringArray{"OUTPUT","INPUT","GR"},0));
     p.push_back(std::make_unique<AudioParameterBool>("autoLevel","Auto Level Match",false));
     p.push_back(std::make_unique<AudioParameterBool>("autoRelease","Auto Release",false));
     p.push_back(std::make_unique<AudioParameterBool>("grMatch","GR Match",false));
@@ -45,12 +57,15 @@ juce::AudioProcessorValueTreeState::ParameterLayout QuanpressorAudioProcessor::m
 void QuanpressorAudioProcessor::prepareToPlay(double sr,int bs)
 {
     dsp.prepare(sr,bs,getTotalNumOutputChannels());
-    outputVu.prepare(sr);
+    for (auto& meter : inputVu)
+        meter.prepare(sr);
+    for (auto& meter : outputVu)
+        meter.prepare(sr);
     graphDetectorDb = -100.0f;
-    inputPeakBallisticDb = -100.0f;
-    outputPeakBallisticDb = -100.0f;
-    inputRmsBallisticDb = -100.0f;
-    outputRmsBallisticDb = -100.0f;
+    inputPeakBallisticDb.fill(-100.0f);
+    outputPeakBallisticDb.fill(-100.0f);
+    inputRmsBallisticDb.fill(-100.0f);
+    outputRmsBallisticDb.fill(-100.0f);
     grMatchAverageDb.fill(0.0f);
     previousGrMatchMode = static_cast<QuanpressorDSP::Mode>(
         static_cast<int>(*apvts.getRawParameterValue("mode")));
@@ -70,14 +85,27 @@ void QuanpressorAudioProcessor::processBlock(juce::AudioBuffer<float>& b, juce::
     const int samples = b.getNumSamples();
     const int channels = b.getNumChannels();
 
-    float rawInputPeak = 0.0f;
-    double rawInputEnergy = 0.0;
+    std::array<float, 2> rawInputPeaks {};
+    std::array<double, 2> rawInputEnergies {};
     for (int ch = 0; ch < channels; ++ch)
     {
-        rawInputPeak = juce::jmax(rawInputPeak, b.getMagnitude(ch, 0, samples));
+        const float channelPeak = b.getMagnitude(ch, 0, samples);
+        if (ch < 2)
+            rawInputPeaks[static_cast<size_t>(ch)] = channelPeak;
+
         const auto* inputData = b.getReadPointer(ch);
         for (int i = 0; i < samples; ++i)
-            rawInputEnergy += static_cast<double>(inputData[i]) * static_cast<double>(inputData[i]);
+        {
+            const double square = static_cast<double>(inputData[i]) * static_cast<double>(inputData[i]);
+            if (ch < 2)
+                rawInputEnergies[static_cast<size_t>(ch)] += square;
+        }
+    }
+
+    if (channels == 1)
+    {
+        rawInputPeaks[1] = rawInputPeaks[0];
+        rawInputEnergies[1] = rawInputEnergies[0];
     }
 
     QuanpressorDSP::Controls c;
@@ -104,33 +132,43 @@ void QuanpressorAudioProcessor::processBlock(juce::AudioBuffer<float>& b, juce::
     c.stereoChain = *apvts.getRawParameterValue("stereoChain") > 0.5f;
 
     const float inputGainLinear = juce::Decibels::decibelsToGain(c.inputDb);
-    const float inputPeakTargetDb = juce::Decibels::gainToDecibels(rawInputPeak * inputGainLinear, -100.0f);
+    // Each INPUT VU follows its channel after INPUT GAIN. Mono buses duplicate
+    // channel zero above so the two needles behave as a dual-mono meter pair.
+    const double inputGainPower = static_cast<double>(inputGainLinear)
+                                * static_cast<double>(inputGainLinear);
+    for (size_t ch = 0; ch < inputVu.size(); ++ch)
     {
-        const float timeSeconds = inputPeakTargetDb > inputPeakBallisticDb ? 0.008f : 0.140f;
-        const float alpha = 1.0f - std::exp(-static_cast<float>(samples)
-                                          / static_cast<float>(getSampleRate() * timeSeconds));
-        inputPeakBallisticDb += alpha * (inputPeakTargetDb - inputPeakBallisticDb);
-        meters.inputDb.store(inputPeakBallisticDb);
+        const double meanSquare = rawInputEnergies[ch] * inputGainPower
+                                / static_cast<double>(juce::jmax(1, samples));
+        meters.inputVuDb[ch].store(inputVu[ch].process(meanSquare, samples),
+                                   std::memory_order_relaxed);
     }
+    std::array<float, 2> inputPeakTargetDb {};
+    for (size_t ch = 0; ch < inputPeakTargetDb.size(); ++ch)
     {
-        if (grMatchInputLevelDb <= -99.0f && inputPeakTargetDb > -99.0f)
-            grMatchInputLevelDb = inputPeakTargetDb;
+        inputPeakTargetDb[ch] = juce::Decibels::gainToDecibels(rawInputPeaks[ch] * inputGainLinear, -100.0f);
+        updateMeterBallistic(inputPeakTargetDb[ch], inputPeakBallisticDb[ch], meters.inputDb[ch],
+                             samples, getSampleRate(), 0.008f, 0.140f);
+    }
+    const float linkedInputPeakTargetDb = juce::jmax(inputPeakTargetDb[0], inputPeakTargetDb[1]);
+    {
+        if (grMatchInputLevelDb <= -99.0f && linkedInputPeakTargetDb > -99.0f)
+            grMatchInputLevelDb = linkedInputPeakTargetDb;
         else
         {
-            const float timeSeconds = inputPeakTargetDb > grMatchInputLevelDb ? 0.20f : 1.00f;
+            const float timeSeconds = linkedInputPeakTargetDb > grMatchInputLevelDb ? 0.20f : 1.00f;
             const float alpha = 1.0f - std::exp(-static_cast<float>(samples)
                                               / static_cast<float>(getSampleRate() * timeSeconds));
-            grMatchInputLevelDb += alpha * (inputPeakTargetDb - grMatchInputLevelDb);
+            grMatchInputLevelDb += alpha * (linkedInputPeakTargetDb - grMatchInputLevelDb);
         }
     }
-    const float inputRmsPre = static_cast<float>(std::sqrt(rawInputEnergy / juce::jmax(1, samples * channels)));
-    const float inputRmsTargetDb = juce::Decibels::gainToDecibels(inputRmsPre * inputGainLinear, -100.0f);
+    for (size_t ch = 0; ch < inputRmsBallisticDb.size(); ++ch)
     {
-        const float timeSeconds = inputRmsTargetDb > inputRmsBallisticDb ? 0.300f : 0.650f;
-        const float alpha = 1.0f - std::exp(-static_cast<float>(samples)
-                                          / static_cast<float>(getSampleRate() * timeSeconds));
-        inputRmsBallisticDb += alpha * (inputRmsTargetDb - inputRmsBallisticDb);
-        meters.inputRmsDb.store(inputRmsBallisticDb);
+        const float channelRms = static_cast<float>(std::sqrt(rawInputEnergies[ch]
+                                                              / juce::jmax(1, samples)));
+        const float targetDb = juce::Decibels::gainToDecibels(channelRms * inputGainLinear, -100.0f);
+        updateMeterBallistic(targetDb, inputRmsBallisticDb[ch], meters.inputRmsDb[ch],
+                             samples, getSampleRate(), 0.300f, 0.650f);
     }
 
     const bool grMatchEnabled = c.grMatch;
@@ -165,35 +203,48 @@ void QuanpressorAudioProcessor::processBlock(juce::AudioBuffer<float>& b, juce::
     c.grMatch = false;
     dsp.process(b, c);
 
-    float outputPeak = 0.0f;
-    double outputEnergy = 0.0;
+    std::array<float, 2> outputPeaks {};
+    std::array<double, 2> outputEnergies {};
     for (int ch = 0; ch < channels; ++ch)
     {
-        outputPeak = juce::jmax(outputPeak, b.getMagnitude(ch, 0, samples));
+        const float channelPeak = b.getMagnitude(ch, 0, samples);
+        if (ch < 2)
+            outputPeaks[static_cast<size_t>(ch)] = channelPeak;
+
         const auto* data = b.getReadPointer(ch);
         for (int i = 0; i < samples; ++i)
-            outputEnergy += static_cast<double>(data[i]) * static_cast<double>(data[i]);
+        {
+            const double square = static_cast<double>(data[i]) * static_cast<double>(data[i]);
+            if (ch < 2)
+                outputEnergies[static_cast<size_t>(ch)] += square;
+        }
     }
 
-    const float outputPeakTargetDb = juce::Decibels::gainToDecibels(outputPeak, -100.0f);
+    if (channels == 1)
     {
-        const float timeSeconds = outputPeakTargetDb > outputPeakBallisticDb ? 0.008f : 0.140f;
-        const float alpha = 1.0f - std::exp(-static_cast<float>(samples)
-                                          / static_cast<float>(getSampleRate() * timeSeconds));
-        outputPeakBallisticDb += alpha * (outputPeakTargetDb - outputPeakBallisticDb);
-        meters.outputDb.store(outputPeakBallisticDb);
+        outputPeaks[1] = outputPeaks[0];
+        outputEnergies[1] = outputEnergies[0];
     }
-    const float outputRms = static_cast<float>(std::sqrt(outputEnergy / juce::jmax(1, samples * channels)));
-    const float outputRmsDb = juce::Decibels::gainToDecibels(outputRms, -100.0f);
+
+    for (size_t ch = 0; ch < outputPeakBallisticDb.size(); ++ch)
     {
-        const float timeSeconds = outputRmsDb > outputRmsBallisticDb ? 0.300f : 0.650f;
-        const float alpha = 1.0f - std::exp(-static_cast<float>(samples)
-                                          / static_cast<float>(getSampleRate() * timeSeconds));
-        outputRmsBallisticDb += alpha * (outputRmsDb - outputRmsBallisticDb);
-        meters.outputRmsDb.store(outputRmsBallisticDb);
+        const float targetDb = juce::Decibels::gainToDecibels(outputPeaks[ch], -100.0f);
+        updateMeterBallistic(targetDb, outputPeakBallisticDb[ch], meters.outputDb[ch],
+                             samples, getSampleRate(), 0.008f, 0.140f);
+    }
+    for (size_t ch = 0; ch < outputRmsBallisticDb.size(); ++ch)
+    {
+        const float channelRms = static_cast<float>(std::sqrt(outputEnergies[ch]
+                                                              / juce::jmax(1, samples)));
+        const float targetDb = juce::Decibels::gainToDecibels(channelRms, -100.0f);
+        updateMeterBallistic(targetDb, outputRmsBallisticDb[ch], meters.outputRmsDb[ch],
+                             samples, getSampleRate(), 0.300f, 0.650f);
     }
     const float actualGrDb = dsp.getGrDb();
     meters.grDb.store(actualGrDb);
+    for (size_t ch = 0; ch < meters.grVuDb.size(); ++ch)
+        meters.grVuDb[ch].store(dsp.getGrDbForChannel(static_cast<int>(ch)),
+                                std::memory_order_relaxed);
     const float effectiveThresholdDb = dsp.getEffectiveThresholdDb();
     meters.effectiveThresholdDb.store(effectiveThresholdDb);
     meters.graphGainDb.store(dsp.getGraphGainDb(), std::memory_order_relaxed);
@@ -254,13 +305,18 @@ void QuanpressorAudioProcessor::processBlock(juce::AudioBuffer<float>& b, juce::
 
     // The graph spot and INPUT peak meter describe the same post-input-gain
     // signal. Sharing the ballistic value avoids architecture-dependent jumps.
-    graphDetectorDb = inputPeakBallisticDb;
+    graphDetectorDb = juce::jmax(inputPeakBallisticDb[0], inputPeakBallisticDb[1]);
     meters.graphInputDb.store(graphDetectorDb);
 
-    // This energy is measured from the host output buffer after every DSP,
-    // MAKEUP, MIX and OUTPUT operation. VU has no parameter-side state.
-    const double blockMeanSquare = outputEnergy / static_cast<double>(juce::jmax(1, samples * channels));
-    meters.vuDb.store(outputVu.process(blockMeanSquare, samples));
+    // Each OUTPUT VU measures its final host-output channel after every DSP,
+    // MAKEUP, MIX and OUTPUT operation.
+    for (size_t ch = 0; ch < outputVu.size(); ++ch)
+    {
+        const double meanSquare = outputEnergies[ch]
+                                / static_cast<double>(juce::jmax(1, samples));
+        meters.outputVuDb[ch].store(outputVu[ch].process(meanSquare, samples),
+                                    std::memory_order_relaxed);
+    }
 
     historyCounter += samples;
     if (historyCounter > static_cast<int>(getSampleRate() / 20.0))

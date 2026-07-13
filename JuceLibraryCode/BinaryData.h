@@ -9,16 +9,16 @@
 namespace BinaryData
 {
     extern const char*   NoMeterButton_ON_png;
-    const int            NoMeterButton_ON_pngSize = 4716;
+    const int            NoMeterButton_ON_pngSize = 5151;
 
     extern const char*   VU_GRmode_ON_png;
-    const int            VU_GRmode_ON_pngSize = 2068;
+    const int            VU_GRmode_ON_pngSize = 2076;
 
     extern const char*   VU_INPUTmode_ON_png;
-    const int            VU_INPUTmode_ON_pngSize = 2814;
+    const int            VU_INPUTmode_ON_pngSize = 2787;
 
     extern const char*   VU_OUTPUTmode_ON_png;
-    const int            VU_OUTPUTmode_ON_pngSize = 2986;
+    const int            VU_OUTPUTmode_ON_pngSize = 3009;
 
     extern const char*   Auto_Gain_Button_png;
     const int            Auto_Gain_Button_pngSize = 5003;
@@ -33,7 +33,7 @@ namespace BinaryData
     const int            Auto_Release_Button_ON_pngSize = 5631;
 
     extern const char*   BG_png;
-    const int            BG_pngSize = 2701190;
+    const int            BG_pngSize = 2697467;
 
     extern const char*   BlueKnob_png;
     const int            BlueKnob_pngSize = 4607;
@@ -80,9 +80,6 @@ namespace BinaryData
     extern const char*   NoMeterButton_png;
     const int            NoMeterButton_pngSize = 5051;
 
-    extern const char*   NoMeterCurtain_png;
-    const int            NoMeterCurtain_pngSize = 1937971;
-
     extern const char*   OPTO_Button_png;
     const int            OPTO_Button_pngSize = 9402;
 
@@ -126,19 +123,19 @@ namespace BinaryData
     const int            VU_GRmode_pngSize = 2137;
 
     extern const char*   VU_INPUTmode_png;
-    const int            VU_INPUTmode_pngSize = 3128;
+    const int            VU_INPUTmode_pngSize = 3151;
 
     extern const char*   VU_Meter_Scale_svg;
     const int            VU_Meter_Scale_svgSize = 1383;
 
     extern const char*   VU_OUTPUTmode_png;
-    const int            VU_OUTPUTmode_pngSize = 3288;
+    const int            VU_OUTPUTmode_pngSize = 3322;
 
     extern const char*   YellowKnob_png;
     const int            YellowKnob_pngSize = 7560;
 
     // Number of elements in the namedResourceList and originalFileNames arrays.
-    const int namedResourceListSize = 43;
+    const int namedResourceListSize = 42;
 
     // Points to the start of a list of resource names.
     extern const char* namedResourceList[];

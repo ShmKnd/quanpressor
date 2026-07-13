@@ -9,6 +9,10 @@
   <MAINGROUP id="mainQnPr" name="Quanpressor">
     <GROUP id="srcQnPr" name="Source">
       <FILE id="metQnPr" name="Metering.h" compile="0" resource="0" file="Source/Metering.h"/>
+      <FILE id="mprQnPr" name="MeterPrivacyRenderer.cpp" compile="1" resource="0"
+            file="Source/MeterPrivacyRenderer.cpp"/>
+      <FILE id="mphQnPr" name="MeterPrivacyRenderer.h" compile="0" resource="0"
+            file="Source/MeterPrivacyRenderer.h"/>
       <FILE id="edcQnPr" name="PluginEditor.cpp" compile="1" resource="0"
             file="Source/PluginEditor.cpp"/>
       <FILE id="edhQnPr" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
@@ -61,8 +65,6 @@
       <FILE id="hsPDKr" name="Mock_v2.png" compile="0" resource="1" file="Assets/Mock_v2.png"/>
       <FILE id="j1tKjn" name="NoMeterButton.png" compile="0" resource="1"
             file="Assets/NoMeterButton.png"/>
-      <FILE id="mVN0Ro" name="NoMeterCurtain.png" compile="0" resource="1"
-            file="Assets/NoMeterCurtain.png"/>
       <FILE id="IeqPwu" name="OPTO Button.png" compile="0" resource="1" file="Assets/OPTO Button.png"/>
       <FILE id="cPdPGv" name="OPTO Button_ON.png" compile="0" resource="1"
             file="Assets/OPTO Button_ON.png"/>
@@ -110,6 +112,7 @@
     <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
   </MODULES>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_WEB_BROWSER="0" JUCE_USE_CURL="0"
                JUCE_VST3_CAN_REPLACE_VST2="0"/>
@@ -133,6 +136,7 @@
         <MODULEPATH id="juce_graphics" path="../../../JUCE/modules"/>
         <MODULEPATH id="juce_gui_basics" path="../../../JUCE/modules"/>
         <MODULEPATH id="juce_gui_extra" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_opengl" path="../../../JUCE/modules"/>
         <MODULEPATH id="juce_audio_processors_headless" path="../../JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>

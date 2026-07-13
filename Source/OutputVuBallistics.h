@@ -34,7 +34,9 @@ public:
     float getValueDb() const noexcept { return valueDb; }
 
 private:
-    static constexpr double referenceCalibrationDb = 21.4102999566;
+    // Quanpressor calibration contract: a 1 kHz sine whose sample peak is
+    // -18 dBFS reads 0 VU. Its mean-square level is -21.0102999566 dBFS.
+    static constexpr double referenceCalibrationDb = 21.0102999566;
     double sampleRate = 44100.0;
     double meanSquare = 0.0;
     float valueDb = -60.0f;
