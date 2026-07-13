@@ -57,6 +57,11 @@ public:
         }
 
         void paint(juce::Graphics&) override;
+        void mouseDown(const juce::MouseEvent&) override;
+        void mouseDrag(const juce::MouseEvent&) override;
+
+    private:
+        void movePopupCloserToKnob();
     };
 
     struct ImageButton : juce::Button
@@ -73,6 +78,23 @@ public:
     };
 
 private:
+    struct TooltipLookAndFeel : juce::LookAndFeel_V4
+    {
+        TooltipLookAndFeel()
+        {
+            setColour(juce::TooltipWindow::textColourId, juce::Colour::fromRGB(236, 236, 232));
+            setColour(juce::BubbleComponent::backgroundColourId,
+                      juce::Colour::fromRGB(24, 25, 27).withAlpha(0.98f));
+            setColour(juce::BubbleComponent::outlineColourId, juce::Colour::fromRGB(104, 108, 112));
+        }
+
+        juce::Rectangle<int> getTooltipBounds(const juce::String&, juce::Point<int> screenPos,
+                                              juce::Rectangle<int> parentArea) override;
+        void drawTooltip(juce::Graphics&, const juce::String&, int width, int height) override;
+        void drawBubble(juce::Graphics&, juce::BubbleComponent&, const juce::Point<float>& tip,
+                        const juce::Rectangle<float>& body) override;
+    };
+
     struct Meter : juce::Component
     {
         std::atomic<float>* value{};
@@ -137,6 +159,8 @@ private:
     void addKnob(Knob&, const char*);
 
     QuanpressorAudioProcessor& proc;
+    TooltipLookAndFeel tooltipLookAndFeel;
+    juce::TooltipWindow tooltipWindow { this, 1700 };
     juce::Component content;
     juce::ComboBox mode;
     std::array<ImageButton, 4> modeButtons {

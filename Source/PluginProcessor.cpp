@@ -38,11 +38,11 @@ juce::AudioProcessorValueTreeState::ParameterLayout QuanpressorAudioProcessor::m
 {
     using namespace juce; std::vector<std::unique_ptr<RangedAudioParameter>> p;
     p.push_back(std::make_unique<AudioParameterChoice>("mode","Mode",StringArray{"FET","OPTO","VCA","VARI-MU"},0));
-    auto add=[&](const char* id,const char* name,float a,float b,float step,float def,const char* suffix=""){ p.push_back(std::make_unique<AudioParameterFloat>(id,name,NormalisableRange<float>(a,b,step),def,String(),AudioProcessorParameter::genericParameter,[suffix](float v,int){return String(v,1)+suffix;},nullptr));};
+    auto add=[&](const char* id,const char* name,float a,float b,float step,float def,const char* suffix="",float displayScale=1.0f){ p.push_back(std::make_unique<AudioParameterFloat>(id,name,NormalisableRange<float>(a,b,step),def,String(),AudioProcessorParameter::genericParameter,[suffix,displayScale](float v,int){return String(v*displayScale,1)+suffix;},nullptr));};
     add("input","Input",-24,24,0.1f,0," dB"); add("threshold","Threshold",-48,0,0.1f,-18," dB"); add("ratio","Ratio",1.5f,20.0f,0.1f,4,":1"); add("drive","Drive",0,18,0.1f,0," dB");
     add("attack","Attack",0.02f,100,0.01f,10," ms"); add("release","Release",20,1200,1,150," ms"); add("knee","Knee",0,18,0.1f,6," dB");
-    add("makeup","Makeup",-12,24,0.1f,0," dB"); add("highFreq","High Bleed",1000,18000,1,8000," Hz"); add("highAmt","High Amount",0,1,0.001f,0);
-    add("lowFreq","Low Bleed",30,600,1,120," Hz"); add("lowAmt","Low Amount",0,1,0.001f,0); add("output","Output",-24,24,0.1f,0," dB");
+    add("makeup","Makeup",-12,24,0.1f,0," dB"); add("highFreq","High Bleed",1000,18000,1,8000," Hz"); add("highAmt","High Amount",0,1,0.001f,0," %",100.0f);
+    add("lowFreq","Low Bleed",30,600,1,120," Hz"); add("lowAmt","Low Amount",0,1,0.001f,0," %",100.0f); add("output","Output",-24,24,0.1f,0," dB");
     add("mix","Mix",0,100,0.1f,100," %");
     p.push_back(std::make_unique<AudioParameterChoice>("muSpeed","Time Constant",StringArray{"1","2","3","4","5","6"},2));
     p.push_back(std::make_unique<AudioParameterChoice>("vuMode","VU Mode",StringArray{"OUTPUT","INPUT","GR"},0));

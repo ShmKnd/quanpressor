@@ -278,6 +278,52 @@ namespace
     }
 }
 
+juce::Rectangle<int> QuanpressorAudioProcessorEditor::TooltipLookAndFeel::getTooltipBounds(
+    const juce::String& tipText, juce::Point<int> screenPos, juce::Rectangle<int> parentArea)
+{
+    const auto text = tipText.trimEnd();
+    const juce::Font font { juce::FontOptions(12.0f) };
+    juce::StringArray lines;
+    lines.addLines(text);
+
+    int textWidth = 0;
+    for (const auto& line : lines)
+        textWidth = juce::jmax(textWidth, juce::GlyphArrangement::getStringWidthInt(font, line));
+
+    const int width = textWidth + 16;
+    const int height = juce::roundToInt(font.getHeight() * juce::jmax(1, lines.size())) + 10;
+    const int x = screenPos.x > parentArea.getCentreX() ? screenPos.x - width - 12 : screenPos.x + 12;
+    const int y = screenPos.y > parentArea.getCentreY() ? screenPos.y - height - 6 : screenPos.y + 6;
+    return juce::Rectangle<int>(x, y, width, height).constrainedWithin(parentArea);
+}
+
+void QuanpressorAudioProcessorEditor::TooltipLookAndFeel::drawTooltip(
+    juce::Graphics& g, const juce::String& text, int width, int height)
+{
+    g.setColour(juce::Colour::fromRGB(24, 25, 27).withAlpha(0.98f));
+    g.fillRect(0, 0, width, height);
+    g.setColour(juce::Colour::fromRGB(104, 108, 112));
+    g.drawRect(0, 0, width, height, 1);
+
+    g.setColour(juce::Colour::fromRGB(236, 236, 232));
+    g.setFont(juce::FontOptions(12.0f));
+    g.drawFittedText(text.trimEnd(),
+                     juce::Rectangle<int>(8, 5, juce::jmax(1, width - 16), juce::jmax(1, height - 10)),
+                     juce::Justification::centredLeft, 3, 1.0f);
+}
+
+void QuanpressorAudioProcessorEditor::TooltipLookAndFeel::drawBubble(
+    juce::Graphics& g, juce::BubbleComponent& bubble, const juce::Point<float>& tip,
+    const juce::Rectangle<float>& body)
+{
+    juce::ignoreUnused(tip);
+
+    g.setColour(bubble.findColour(juce::BubbleComponent::backgroundColourId));
+    g.fillRect(body);
+    g.setColour(bubble.findColour(juce::BubbleComponent::outlineColourId));
+    g.drawRect(body, 1.0f);
+}
+
 void QuanpressorAudioProcessorEditor::Knob::paint(juce::Graphics& g)
 {
     auto area = getLocalBounds().toFloat();
@@ -320,6 +366,48 @@ void QuanpressorAudioProcessorEditor::Knob::paint(juce::Graphics& g)
     g.setOpacity(1.0f);
 }
 
+void QuanpressorAudioProcessorEditor::Knob::mouseDown(const juce::MouseEvent& event)
+{
+    juce::Slider::mouseDown(event);
+    movePopupCloserToKnob();
+}
+
+void QuanpressorAudioProcessorEditor::Knob::mouseDrag(const juce::MouseEvent& event)
+{
+    juce::Slider::mouseDrag(event);
+    movePopupCloserToKnob();
+}
+
+void QuanpressorAudioProcessorEditor::Knob::movePopupCloserToKnob()
+{
+    auto* popup = getCurrentPopupDisplay();
+    if (popup == nullptr)
+        return;
+
+    auto popupBounds = popup->getBounds();
+    const auto targetBounds = getScreenBounds().transformedBy(popup->getTransform().inverted());
+    const int deltaX = popupBounds.getCentreX() - targetBounds.getCentreX();
+    const int deltaY = popupBounds.getCentreY() - targetBounds.getCentreY();
+    constexpr int popupTargetOverlap = 13;
+
+    if (std::abs(deltaY) >= std::abs(deltaX))
+    {
+        if (deltaY < 0)
+            popupBounds.setBottom(targetBounds.getY() + popupTargetOverlap);
+        else
+            popupBounds.setY(targetBounds.getBottom() - popupTargetOverlap);
+    }
+    else
+    {
+        if (deltaX < 0)
+            popupBounds.setRight(targetBounds.getX() + popupTargetOverlap);
+        else
+            popupBounds.setX(targetBounds.getRight() - popupTargetOverlap);
+    }
+
+    popup->setBounds(popupBounds);
+}
+
 void QuanpressorAudioProcessorEditor::ImageButton::paintButton(juce::Graphics& g,
                                                                bool highlighted,
                                                                bool down)
@@ -348,6 +436,7 @@ void QuanpressorAudioProcessorEditor::ImageButton::paintButton(juce::Graphics& g
 void QuanpressorAudioProcessorEditor::addKnob(Knob& k, const char* id)
 {
     content.addAndMakeVisible(k);
+    k.setLookAndFeel(&tooltipLookAndFeel);
     k.parameterId = id;
     k.setPopupDisplayEnabled(true, false, nullptr);
     if (auto* parameter = proc.apvts.getParameter(id))
@@ -364,6 +453,7 @@ QuanpressorAudioProcessorEditor::QuanpressorAudioProcessorEditor(QuanpressorAudi
     : AudioProcessorEditor(&p), proc(p), graph(p), historyGraph(p)
 {
     addAndMakeVisible(content);
+    tooltipWindow.setLookAndFeel(&tooltipLookAndFeel);
     setSize(juce::roundToInt(kBaseWidth * kUiScale),
             juce::roundToInt(kBaseHeight * kUiScale));
 
@@ -416,6 +506,7 @@ QuanpressorAudioProcessorEditor::QuanpressorAudioProcessorEditor(QuanpressorAudi
     addKnob(output,    "output");
     addKnob(mix,       "mix");
     content.addAndMakeVisible(timeConstant);
+    timeConstant.setLookAndFeel(&tooltipLookAndFeel);
     timeConstant.setPopupDisplayEnabled(true, false, nullptr);
     if (auto* parameter = proc.apvts.getParameter("muSpeed"))
     {
@@ -457,9 +548,22 @@ QuanpressorAudioProcessorEditor::QuanpressorAudioProcessorEditor(QuanpressorAudi
     ba.push_back(std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(proc.apvts, "stereoChain", stereoChain));
     ba.push_back(std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(proc.apvts, "noMeter", noMeter));
 
-    sidechainHpf.setTooltip("120 Hz sidechain high-pass: low frequencies pass without driving compression.");
-    stereoChain.setTooltip("Links left/right gain reduction to preserve the stereo image.");
-    noMeter.setTooltip("Blur the central meters while keeping input and output peak meters visible.");
+    modeButtons[0].setTooltip("FET - Fast attack for punch and impact.");
+    modeButtons[1].setTooltip("Opto - Gentle leveling that follows the performance naturally.");
+    modeButtons[2].setTooltip("VCA - Accurate compression for everyday mixing.");
+    modeButtons[3].setTooltip("Vari-Mu - Warm analog color with smooth dynamics.");
+
+    optoReset.setTooltip("Resets the photocell memory for a fresh compression response.");
+    noMeter.setTooltip("No Meter Mode\nHides all meters to encourage mixing by ear.");
+    highFreq.setTooltip("High Bleed\nBlends high frequencies into the sidechain detector.");
+    highAmt.setTooltip("High Bleed\nBlends high frequencies into the sidechain detector.");
+    lowFreq.setTooltip("Low Bleed\nBlends low frequencies into the sidechain detector.");
+    lowAmt.setTooltip("Low Bleed\nBlends low frequencies into the sidechain detector.");
+    autoLevel.setTooltip("Auto Gain\nAutomatically compensates for output level changes.");
+    autoRelease.setTooltip("Auto Release\nAutomatically adjusts release time based on the input signal.");
+    grMatch.setTooltip("Matches the amount of gain reduction across compressor types.");
+    stereoChain.setTooltip("ST LINK\nLinks the left and right channels for stereo compression.");
+    sidechainHpf.setTooltip("SC FILTER\nHigh-pass filters the sidechain to reduce low-frequency triggering.");
     optoReset.onClick = [this] { proc.requestOptoReset(); };
 
     inMeter.peakValues = { &proc.meters.inputDb[0], &proc.meters.inputDb[1] };
@@ -498,6 +602,7 @@ QuanpressorAudioProcessorEditor::QuanpressorAudioProcessorEditor(QuanpressorAudi
 QuanpressorAudioProcessorEditor::~QuanpressorAudioProcessorEditor()
 {
     stopTimer();
+    tooltipWindow.setLookAndFeel(nullptr);
     for (auto& renderer : meterPrivacyRenderers)
         if (renderer != nullptr)
             renderer->shutdown();
@@ -517,7 +622,7 @@ void QuanpressorAudioProcessorEditor::resized()
 
     const auto placeKnob = [](juce::Slider& slider, int x, int y)
     {
-        slider.setBounds(x - 28, y - 28, 121, 121);
+        slider.setBounds(x, y, 65, 65);
     };
 
     const auto placeButton = [](juce::Button& button, int x, int y, int w, int h)
@@ -526,12 +631,12 @@ void QuanpressorAudioProcessorEditor::resized()
     };
 
     inMeter.setBounds(10, 88, 88, 532);
-    input.setBounds(-6, 648, 121, 121);
+    input.setBounds(22, 676, 65, 65);
     placeButton(stereoChain, 10, 752, 94, 22);
     placeButton(sidechainHpf, 10, 783, 94, 22);
 
     outMeter.setBounds(1258, 88, 88, 532);
-    output.setBounds(1242, 648, 121, 121);
+    output.setBounds(1270, 676, 65, 65);
 
     placeButton(modeButtons[0], 133, 109, 94, 44);
     placeButton(modeButtons[1], 237, 109, 94, 44);
@@ -555,7 +660,7 @@ void QuanpressorAudioProcessorEditor::resized()
     placeButton(autoRelease, 274, 524, 94, 22);
     placeButton(autoLevel, 418, 524, 94, 22);
 
-    timeConstant.setBounds(192, 626, 89, 89);
+    timeConstant.setBounds(204, 638, 65, 65);
     placeButton(optoReset, 348, 653, 115, 31);
 
     vuMeters[0].setBounds(582, 93, 168, 86);
