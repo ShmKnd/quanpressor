@@ -210,25 +210,6 @@ namespace
         return db == 0.0f ? "0" : juce::String((int) db);
     }
 
-    float nearestFetRatio(float value)
-    {
-        static constexpr float ratios[] = { 4.0f, 8.0f, 12.0f, 20.0f };
-        float nearest = ratios[0];
-        float nearestDistance = std::abs(value - nearest);
-
-        for (float ratioValue : ratios)
-        {
-            const float distance = std::abs(value - ratioValue);
-            if (distance < nearestDistance)
-            {
-                nearest = ratioValue;
-                nearestDistance = distance;
-            }
-        }
-
-        return nearest;
-    }
-
     float knobStartAngle(bool timeConstantScale)
     {
         return juce::degreesToRadians(timeConstantScale ? -75.0f : -135.0f);
@@ -707,12 +688,6 @@ void QuanpressorAudioProcessorEditor::updateArchitectureControls()
 
     enableControl(ratio, !isMu);
     ratio.useFetRatioGrid = isFet;
-    if (isFet)
-    {
-        const double snapped = nearestFetRatio(static_cast<float>(ratio.getValue()));
-        if (std::abs(ratio.getValue() - snapped) > 0.001)
-            ratio.setValue(snapped, juce::sendNotificationSync);
-    }
     enableControl(attack, isFet || isVca);
     enableControl(release, (isFet || isVca) && !autoReleaseOn);
     enableControl(knee, isVca);
@@ -1076,10 +1051,7 @@ void QuanpressorAudioProcessorEditor::Graph::paint(juce::Graphics& g)
     const float kneeDb = p.apvts.getRawParameterValue("knee")->load();
     const int modeValue = static_cast<int>(p.apvts.getRawParameterValue("mode")->load());
     if (modeValue == QuanpressorDSP::FET)
-        rat = rat < 6.0f ? 4.0f
-            : rat < 10.0f ? 8.0f
-            : rat < 16.0f ? 12.0f
-            : 20.0f;
+        rat = QuanpressorDSP::fetRatioValue(rat);
     const bool kneeAvailable = modeValue == QuanpressorDSP::VCA;
     const float k = kneeAvailable ? kneeDb : (modeValue == QuanpressorDSP::FET ? 6.0f : 10.0f);
 

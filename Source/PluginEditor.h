@@ -39,21 +39,7 @@ public:
             if (!useFetRatioGrid)
                 return juce::Slider::snapValue(attemptedValue, dragMode);
 
-            static constexpr double ratios[] = { 4.0, 8.0, 12.0, 20.0 };
-            double nearest = ratios[0];
-            double nearestDistance = std::abs(attemptedValue - nearest);
-
-            for (double ratioValue : ratios)
-            {
-                const double distance = std::abs(attemptedValue - ratioValue);
-                if (distance < nearestDistance)
-                {
-                    nearest = ratioValue;
-                    nearestDistance = distance;
-                }
-            }
-
-            return nearest;
+            return QuanpressorDSP::fetRatioValue(static_cast<float>(attemptedValue));
         }
 
         void paint(juce::Graphics&) override;

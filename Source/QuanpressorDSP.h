@@ -26,6 +26,29 @@ public:
         bool sidechainHpf = false, stereoChain = true, oversampling = true;
     };
 
+    static int fetRatioIndex(float parameterValue) noexcept
+    {
+        static constexpr std::array<float, 4> ratios { 4.0f, 8.0f, 12.0f, 20.0f };
+        int nearestIndex = 0;
+        float nearestDistance = std::abs(parameterValue - ratios[0]);
+        for (int i = 1; i < static_cast<int>(ratios.size()); ++i)
+        {
+            const float distance = std::abs(parameterValue - ratios[static_cast<size_t>(i)]);
+            if (distance < nearestDistance)
+            {
+                nearestIndex = i;
+                nearestDistance = distance;
+            }
+        }
+        return nearestIndex;
+    }
+
+    static float fetRatioValue(float parameterValue) noexcept
+    {
+        static constexpr std::array<float, 4> ratios { 4.0f, 8.0f, 12.0f, 20.0f };
+        return ratios[static_cast<size_t>(fetRatioIndex(parameterValue))];
+    }
+
 
     // Monotonic program-dependent Vari-Mu display/target law.
     // The raw Patina 6386 exponential gain law can exceed a 1:infinity slope
@@ -589,7 +612,7 @@ private:
         fetParams.outputGain = 0.5f;
         fetParams.attack = attackNorm;
         fetParams.release = releaseNorm;
-        fetParams.ratio = c.ratio < 6.0f ? 0 : c.ratio < 10.0f ? 1 : c.ratio < 16.0f ? 2 : 3;
+        fetParams.ratio = fetRatioIndex(c.ratio);
         fetParams.driveDb = juce::jlimit(0.0f, 18.0f, c.driveDb);
 
         PhotoCompressor::Params photoParams;
