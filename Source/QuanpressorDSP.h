@@ -3,8 +3,10 @@
 #include <juce_dsp/juce_dsp.h>
 #include <patina.h>
 #include <array>
+#include <algorithm>
 #include <cmath>
 #include <atomic>
+#include <vector>
 
 class QuanpressorDSP
 {
@@ -19,9 +21,9 @@ public:
         float makeupDb = 0.0f, outputDb = 0.0f, mix = 1.0f;
         float highBleedHz = 8000.0f, highBleedAmt = 0.0f;
         float lowBleedHz = 120.0f, lowBleedAmt = 0.0f;
-        int varMuSpeed = 1;
+        int varMuSpeed = 1, oversamplingFactor = 2;
         bool autoLevel = false, autoRelease = false, grMatch = false;
-        bool sidechainHpf = false, stereoChain = true;
+        bool sidechainHpf = false, stereoChain = true, oversampling = true;
     };
 
 
@@ -67,6 +69,31 @@ public:
         patina::ProcessSpec spec { sr, maxBlock, channels };
         for (auto& e : engines) e.prepare(spec);
         for (auto& e : gainEngines) e.prepare(spec);
+        nonlinearMaxBlock = juce::jmax(1, maxBlock);
+        const int nonlinearChannels = juce::jmax(1, channels) * 2;
+        nonlinearLatencySamples = 0;
+        for (size_t mode = 0; mode < nonlinearBuffers.size(); ++mode)
+        {
+            nonlinearBuffers[mode].setSize(nonlinearChannels, nonlinearMaxBlock);
+            nonlinearOversamplers2x[mode].prepare(nonlinearMaxBlock, nonlinearChannels,
+                patina::OversamplingFactor::x2, patina::FilterQuality::Medium);
+            nonlinearOversamplers4x[mode].prepare(nonlinearMaxBlock, nonlinearChannels,
+                patina::OversamplingFactor::x4, patina::FilterQuality::Medium);
+            resetNonlinearOversampler(nonlinearOversamplers2x[mode]);
+            resetNonlinearOversampler(nonlinearOversamplers4x[mode]);
+            nonlinearLatencySamples = juce::jmax(nonlinearLatencySamples,
+                                                  nonlinearOversamplers4x[mode].getLatency());
+        }
+        inputPathDelay.prepare(channels, nonlinearLatencySamples);
+        for (auto& delay : nativeModeDelays)
+            delay.prepare(channels, nonlinearLatencySamples);
+        for (size_t mode = 0; mode < nonlinearBuffers.size(); ++mode)
+        {
+            oversampling2xAlignmentDelays[mode].prepare(
+                channels, nonlinearLatencySamples - nonlinearOversamplers2x[mode].getLatency());
+            oversampling4xAlignmentDelays[mode].prepare(
+                channels, nonlinearLatencySamples - nonlinearOversamplers4x[mode].getLatency());
+        }
         outputTransformers.resize((size_t) juce::jmax(1, channels));
         for (auto& transformer : outputTransformers)
             transformer.prepare(1, sr);
@@ -77,7 +104,7 @@ public:
         sidechainHigh.setCutoffFrequency(120.0f);
         allocatedSamples = juce::jmax(maxBlock, 65536);
         for (auto* scratch : { &inputReference, &detectorBuffer, &modeInput, &oldWet,
-                               &lowBand, &highLowPassed })
+                               &lowBand, &highLowPassed, &gainScratch })
             scratch->setSize(juce::jmax(1, channels), allocatedSamples, false, true, false);
         reset();
     }
@@ -86,6 +113,12 @@ public:
     {
         for (auto& e : engines) e.reset();
         for (auto& e : gainEngines) e.reset();
+        for (auto& oversampler : nonlinearOversamplers2x) resetNonlinearOversampler(oversampler);
+        for (auto& oversampler : nonlinearOversamplers4x) resetNonlinearOversampler(oversampler);
+        for (auto& delay : oversampling2xAlignmentDelays) delay.reset();
+        for (auto& delay : oversampling4xAlignmentDelays) delay.reset();
+        for (auto& delay : nativeModeDelays) delay.reset();
+        inputPathDelay.reset();
         for (auto& transformer : outputTransformers)
             transformer.reset();
         lowSplit.reset();
@@ -98,6 +131,8 @@ public:
         autoGainDb = 0.0f;
         previousAutoEnabled = false;
         previousStereoChain = false;
+        previousOversampling = true;
+        previousOversamplingFactor = 2;
         modeAverageGr.fill(0.0f);
         architectureTrimDb.fill(0.0f);
         previousDriveActive = false;
@@ -111,9 +146,34 @@ public:
 
     void process(juce::AudioBuffer<float>& buffer, const Controls& c)
     {
+        const int totalSamples = buffer.getNumSamples();
+        const int channels = buffer.getNumChannels();
+        if (totalSamples == 0 || channels == 0)
+            return;
+
+        jassert(channels <= inputReference.getNumChannels());
+        if (channels > inputReference.getNumChannels())
+            return;
+
+        // Some offline renderers exceed prepareToPlay's advertised maximum
+        // block size. Process those blocks as zero-copy views so no block can
+        // silently bypass compression and no allocation occurs on this thread.
+        const int processBlockSize = juce::jmin(allocatedSamples, nonlinearMaxBlock);
+        jassert(processBlockSize > 0);
+        for (int offset = 0; offset < totalSamples; offset += processBlockSize)
+        {
+            const int chunkSamples = juce::jmin(processBlockSize, totalSamples - offset);
+            juce::AudioBuffer<float> chunk(buffer.getArrayOfWritePointers(), channels,
+                                           offset, chunkSamples);
+            processChunk(chunk, c);
+        }
+    }
+
+private:
+    void processChunk(juce::AudioBuffer<float>& buffer, const Controls& c)
+    {
         const int n = buffer.getNumSamples();
         const int channels = buffer.getNumChannels();
-        if (n == 0 || channels == 0) return;
 
         if (photoResetRequested.exchange(false, std::memory_order_acq_rel))
         {
@@ -127,6 +187,19 @@ public:
                 smoothedGrDb = 0.0f;
                 smoothedGrDbByChannel.fill(0.0f);
             }
+        }
+
+        const int oversamplingFactor = c.oversamplingFactor >= 4 ? 4 : 2;
+        if (c.oversampling != previousOversampling
+            || oversamplingFactor != previousOversamplingFactor)
+        {
+            for (auto& oversampler : nonlinearOversamplers2x) resetNonlinearOversampler(oversampler);
+            for (auto& oversampler : nonlinearOversamplers4x) resetNonlinearOversampler(oversampler);
+            for (auto& delay : oversampling2xAlignmentDelays) delay.reset();
+            for (auto& delay : oversampling4xAlignmentDelays) delay.reset();
+            for (auto& delay : nativeModeDelays) delay.reset();
+            previousOversampling = c.oversampling;
+            previousOversamplingFactor = oversamplingFactor;
         }
 
         if (c.stereoChain && !previousStereoChain)
@@ -152,6 +225,11 @@ public:
             // remains untouched because it is still needed for the crossfade.
             engines[(size_t) currentMode].reset();
             gainEngines[(size_t) currentMode].reset();
+            resetNonlinearOversampler(nonlinearOversamplers2x[(size_t) currentMode]);
+            resetNonlinearOversampler(nonlinearOversamplers4x[(size_t) currentMode]);
+            oversampling2xAlignmentDelays[(size_t) currentMode].reset();
+            oversampling4xAlignmentDelays[(size_t) currentMode].reset();
+            nativeModeDelays[(size_t) currentMode].reset();
             modeAverageGr[(size_t) currentMode] = 0.0f;
             xfadeRemaining = juce::roundToInt(0.15 * sampleRate);
         }
@@ -166,11 +244,9 @@ public:
         const float makeupGain = juce::Decibels::decibelsToGain(appliedMakeupDb);
         const float outputGain = juce::Decibels::decibelsToGain(c.outputDb);
 
-        jassert(n <= allocatedSamples && channels <= inputReference.getNumChannels());
-        if (n > allocatedSamples || channels > inputReference.getNumChannels())
-            return;
+        jassert(n <= allocatedSamples);
         for (auto* scratch : { &inputReference, &detectorBuffer, &modeInput, &oldWet,
-                               &lowBand, &highLowPassed })
+                               &lowBand, &highLowPassed, &gainScratch })
             scratch->setSize(channels, n, false, false, true);
 
         copyBuffer(inputReference, buffer, channels, n);
@@ -233,6 +309,10 @@ public:
             for (int ch = 0; ch < channels; ++ch)
                 juce::FloatVectorOperations::multiply(buffer.getWritePointer(ch), align, n);
         }
+
+        // All nonlinear modes have the same oversampling latency. Delay the dry
+        // reference as well so Mix and the parallel bleed paths remain aligned.
+        inputPathDelay.process(inputReference);
 
         // Parallel frequency-selective dry bleed, based on the input after INPUT GAIN.
         copyBuffer(lowBand, inputReference, channels, n);
@@ -309,9 +389,9 @@ public:
 
         const float transformerLinear = 1.0f + transformerParams.saturation * 2.0f;
         const float transformerTrim = 1.0f / (transformerLinear * transformerLinear);
-        const float architectureTransformerAmount = currentMode == FET ? 0.22f
-                                                : currentMode == OPTO ? 0.025f
-                                                : currentMode == VCA ? 0.0f : 0.18f;
+        const float architectureTransformerAmount = currentMode == FET ? 0.045f
+                                                : currentMode == OPTO ? 0.020f
+                                                : currentMode == VCA ? 0.010f : 0.045f;
         const float transformerMix = drivePosition * architectureTransformerAmount;
 
         for (int ch = 0; ch < channels; ++ch)
@@ -349,6 +429,7 @@ public:
 
     }
 
+public:
     float getGrDb() const noexcept { return smoothedGrDb; }
     float getGrDbForChannel(int channel) const noexcept
     {
@@ -356,8 +437,64 @@ public:
     }
     float getEffectiveThresholdDb() const noexcept { return displayThresholdDb.load(std::memory_order_relaxed); }
     float getGraphGainDb() const noexcept { return displayGraphGainDb.load(std::memory_order_relaxed); }
+    int getLatencySamples() const noexcept { return nonlinearLatencySamples; }
 
 private:
+    void resetNonlinearOversampler(patina::Oversampler<float>& oversampler) noexcept
+    {
+        oversampler.reset();
+        const int audioChannels = juce::jmax(1, numChannels);
+        for (int ch = audioChannels; ch < audioChannels * 2; ++ch)
+            oversampler.resetChannel(ch, 1.0f);
+    }
+
+    class FixedDelay
+    {
+    public:
+        void prepare(int channels, int samples)
+        {
+            delaySamples = juce::jmax(0, samples);
+            storage.setSize(juce::jmax(1, channels), juce::jmax(1, delaySamples),
+                            false, true, false);
+            writePositions.assign((size_t)juce::jmax(1, channels), 0);
+            reset();
+        }
+
+        void reset() noexcept
+        {
+            storage.clear();
+            std::fill(writePositions.begin(), writePositions.end(), 0);
+        }
+
+        void process(juce::AudioBuffer<float>& buffer) noexcept
+        {
+            if (delaySamples <= 0)
+                return;
+
+            const int channels = juce::jmin(buffer.getNumChannels(), storage.getNumChannels());
+            for (int ch = 0; ch < channels; ++ch)
+            {
+                auto* samples = buffer.getWritePointer(ch);
+                auto* delayed = storage.getWritePointer(ch);
+                int position = writePositions[(size_t)ch];
+                for (int i = 0; i < buffer.getNumSamples(); ++i)
+                {
+                    const float input = samples[i];
+                    samples[i] = delayed[position];
+                    delayed[position] = input;
+                    if (++position >= delaySamples)
+                        position = 0;
+                }
+                writePositions[(size_t)ch] = position;
+            }
+        }
+
+    private:
+        juce::AudioBuffer<float> storage;
+        std::vector<int> writePositions;
+        int delaySamples = 0;
+    };
+
     struct EngineSet
     {
         PhotoCompressor photo;
@@ -437,14 +574,13 @@ private:
             (effectiveReleaseMs - 20.0f) / (1200.0f - 20.0f));
         const float releaseNorm = std::sqrt(releasePosition);
 
-        // Drive pushes each architecture's native Patina gain cell. The VCA is
-        // intentionally the cleanest; FET is most assertive, while OPTO and
-        // Vari-Mu retain their distinct single-ended and push-pull tube shapes.
-        const float architectureDriveScale = mode == FET ? 1.35f
-                                           : mode == OPTO ? 0.82f
+        // FET Drive is handled inside Patina's JFET gain cell. The other modes
+        // retain their architecture-specific input push into the native cell.
+        const float architectureDriveScale = mode == OPTO ? 0.82f
                                            : mode == VCA ? 0.28f : 0.68f;
-        const float driveGain = juce::Decibels::decibelsToGain(
-            juce::jlimit(0.0f, 18.0f, c.driveDb) * architectureDriveScale);
+        const float driveGain = mode == FET ? 1.0f
+            : juce::Decibels::decibelsToGain(
+                juce::jlimit(0.0f, 18.0f, c.driveDb) * architectureDriveScale);
         const float inverseDrive = 1.0f / juce::jmax(1.0f, driveGain);
 
         FetCompressor::Params fetParams;
@@ -454,6 +590,7 @@ private:
         fetParams.attack = attackNorm;
         fetParams.release = releaseNorm;
         fetParams.ratio = c.ratio < 6.0f ? 0 : c.ratio < 10.0f ? 1 : c.ratio < 16.0f ? 2 : 3;
+        fetParams.driveDb = juce::jlimit(0.0f, 18.0f, c.driveDb);
 
         PhotoCompressor::Params photoParams;
         photoParams.peakReduction = juce::jlimit(0.0f, 1.0f, 0.24f + c.ratio / 28.0f);
@@ -483,7 +620,6 @@ private:
         const float belowPatinaRangeScale = effectiveThresholdDb < -40.0f
             ? thresholdDriveGain(effectiveThresholdDb, -40.0f) : 1.0f;
 
-        auto& gainEngine = gainEngines[(size_t) mode];
         const auto detectGainReduction = [&](int detectorChannel, float detectorSample)
         {
             float grDb = 0.0f;
@@ -544,28 +680,11 @@ private:
 
             for (int ch = 0; ch < b.getNumChannels(); ++ch)
             {
-                auto* p = b.getWritePointer(ch);
                 const float grDb = c.stereoChain && detector.getNumChannels() > 1
                     ? linkedGrDb
                     : detectGainReduction(ch, detector.getSample(ch, i));
                 const float linearGain = juce::Decibels::decibelsToGain(grDb);
-                const float drivenSample = p[i] * driveGain;
-
-                switch (mode)
-                {
-                    case FET:
-                        p[i] = gainEngine.fet.processWithGain(ch, drivenSample, linearGain, fetParams) * inverseDrive;
-                        break;
-                    case OPTO:
-                        p[i] = gainEngine.photo.processWithGain(ch, drivenSample, linearGain, photoParams) * inverseDrive;
-                        break;
-                    case VCA:
-                        p[i] = gainEngine.vca.processWithGain(ch, drivenSample, linearGain, vcaParams) * inverseDrive;
-                        break;
-                    case VARIMU:
-                        p[i] = gainEngine.mu.processWithGain(ch, drivenSample, linearGain, muParams) * inverseDrive;
-                        break;
-                }
+                gainScratch.setSample(ch, i, linearGain);
                 grSum += juce::jmin(0.0f, grDb);
                 ++grCount;
                 if (ch < static_cast<int>(channelGrSum.size()))
@@ -574,6 +693,88 @@ private:
                     ++channelGrCount[static_cast<size_t>(ch)];
                 }
             }
+        }
+
+        auto& gainEngine = gainEngines[(size_t) mode];
+        const auto processGainCell = [&](int channel, float sample, float linearGain,
+                                         double processingRateScale) noexcept
+        {
+            const float drivenSample = sample * driveGain;
+            switch (mode)
+            {
+                case FET:
+                    return gainEngine.fet.processWithGain(channel, sample, linearGain,
+                                                          fetParams, processingRateScale);
+                case OPTO:
+                    return gainEngine.photo.processWithGain(channel, drivenSample, linearGain,
+                                                            photoParams) * inverseDrive;
+                case VCA:
+                    return gainEngine.vca.processWithGain(channel, drivenSample, linearGain,
+                                                          vcaParams) * inverseDrive;
+                case VARIMU:
+                    return gainEngine.mu.processWithGain(channel, drivenSample, linearGain,
+                                                         muParams) * inverseDrive;
+            }
+            return sample;
+        };
+
+        if (c.oversampling)
+        {
+            const bool use4x = c.oversamplingFactor >= 4;
+            auto& oversampler = use4x ? nonlinearOversamplers4x[(size_t) mode]
+                                      : nonlinearOversamplers2x[(size_t) mode];
+            auto& nonlinearBuffer = nonlinearBuffers[(size_t) mode];
+            const int preparedAudioChannels = numChannels;
+            for (int offset = 0; offset < b.getNumSamples(); offset += nonlinearMaxBlock)
+            {
+                const int blockSamples = juce::jmin(nonlinearMaxBlock, b.getNumSamples() - offset);
+                for (int ch = 0; ch < preparedAudioChannels; ++ch)
+                {
+                    auto* audio = nonlinearBuffer.getWritePointer(ch);
+                    auto* gain = nonlinearBuffer.getWritePointer(preparedAudioChannels + ch);
+                    if (ch < b.getNumChannels())
+                    {
+                        std::copy_n(b.getReadPointer(ch) + offset, blockSamples, audio);
+                        std::copy_n(gainScratch.getReadPointer(ch) + offset, blockSamples, gain);
+                    }
+                    else
+                    {
+                        std::fill_n(audio, blockSamples, 0.0f);
+                        std::fill_n(gain, blockSamples, 1.0f);
+                    }
+                }
+
+                oversampler.process(nonlinearBuffer, blockSamples,
+                    [&](auto& oversampled, int oversampledSamples) noexcept
+                    {
+                        const double rateScale = (double)oversampler.getFactor();
+                        for (int ch = 0; ch < b.getNumChannels(); ++ch)
+                        {
+                            auto* audio = oversampled.getWritePointer(ch);
+                            const auto* gain = oversampled.getReadPointer(preparedAudioChannels + ch);
+                            for (int i = 0; i < oversampledSamples; ++i)
+                                audio[i] = processGainCell(ch, audio[i], gain[i], rateScale);
+                        }
+                    });
+
+                for (int ch = 0; ch < b.getNumChannels(); ++ch)
+                    std::copy_n(nonlinearBuffer.getReadPointer(ch), blockSamples,
+                                b.getWritePointer(ch) + offset);
+            }
+            auto& alignmentDelay = use4x ? oversampling4xAlignmentDelays[(size_t) mode]
+                                         : oversampling2xAlignmentDelays[(size_t) mode];
+            alignmentDelay.process(b);
+        }
+        else
+        {
+            for (int ch = 0; ch < b.getNumChannels(); ++ch)
+            {
+                auto* audio = b.getWritePointer(ch);
+                const auto* gain = gainScratch.getReadPointer(ch);
+                for (int i = 0; i < b.getNumSamples(); ++i)
+                    audio[i] = processGainCell(ch, audio[i], gain[i], 1.0);
+            }
+            nativeModeDelays[(size_t) mode].process(b);
         }
 
         if (channelGrDb != nullptr)
@@ -595,11 +796,20 @@ private:
     std::array<EngineSet, 4> gainEngines;
     std::vector<TransformerModel> outputTransformers;
     juce::AudioBuffer<float> inputReference, detectorBuffer, modeInput, oldWet;
-    juce::AudioBuffer<float> lowBand, highLowPassed;
+    juce::AudioBuffer<float> lowBand, highLowPassed, gainScratch;
+    std::array<patina::Oversampler<float>, 4> nonlinearOversamplers2x;
+    std::array<patina::Oversampler<float>, 4> nonlinearOversamplers4x;
+    std::array<patina::compat::AudioBuffer<float>, 4> nonlinearBuffers;
+    std::array<FixedDelay, 4> oversampling2xAlignmentDelays;
+    std::array<FixedDelay, 4> oversampling4xAlignmentDelays;
+    std::array<FixedDelay, 4> nativeModeDelays;
+    FixedDelay inputPathDelay;
     juce::dsp::StateVariableTPTFilter<float> lowSplit, highSplit, sidechainHigh;
     double sampleRate = 44100.0;
     int numChannels = 2;
     int allocatedSamples = 0;
+    int nonlinearMaxBlock = 1;
+    int nonlinearLatencySamples = 0;
     Mode currentMode = FET, requestedMode = FET, oldMode = FET;
     int xfadeRemaining = 0;
     float smoothedGrDb = 0.0f;
@@ -607,6 +817,8 @@ private:
     float autoGainDb = 0.0f;
     bool previousAutoEnabled = false;
     bool previousStereoChain = false;
+    bool previousOversampling = true;
+    int previousOversamplingFactor = 2;
     bool previousDriveActive = false;
     std::array<float, 4> modeAverageGr {};
     std::array<float, 4> architectureTrimDb {};

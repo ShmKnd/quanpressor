@@ -52,11 +52,15 @@ juce::AudioProcessorValueTreeState::ParameterLayout QuanpressorAudioProcessor::m
     p.push_back(std::make_unique<AudioParameterBool>("noMeter","No Meter",false));
     p.push_back(std::make_unique<AudioParameterBool>("sidechainHpf","Sidechain HPF",false));
     p.push_back(std::make_unique<AudioParameterBool>("stereoChain","Stereo Chain",true));
+    p.push_back(std::make_unique<AudioParameterBool>("oversampling","Oversampling",true));
+    p.push_back(std::make_unique<AudioParameterChoice>("oversamplingFactor","Oversampling Factor",
+                                                       StringArray{"2x","4x"},0));
     return {p.begin(),p.end()};
 }
 void QuanpressorAudioProcessor::prepareToPlay(double sr,int bs)
 {
     dsp.prepare(sr,bs,getTotalNumOutputChannels());
+    setLatencySamples(dsp.getLatencySamples());
     for (auto& meter : inputVu)
         meter.prepare(sr);
     for (auto& meter : outputVu)
@@ -130,6 +134,8 @@ void QuanpressorAudioProcessor::processBlock(juce::AudioBuffer<float>& b, juce::
     c.grMatch = *apvts.getRawParameterValue("grMatch") > 0.5f;
     c.sidechainHpf = *apvts.getRawParameterValue("sidechainHpf") > 0.5f;
     c.stereoChain = *apvts.getRawParameterValue("stereoChain") > 0.5f;
+    c.oversampling = *apvts.getRawParameterValue("oversampling") > 0.5f;
+    c.oversamplingFactor = *apvts.getRawParameterValue("oversamplingFactor") > 0.5f ? 4 : 2;
 
     const float inputGainLinear = juce::Decibels::decibelsToGain(c.inputDb);
     // Each INPUT VU follows its channel after INPUT GAIN. Mono buses duplicate
