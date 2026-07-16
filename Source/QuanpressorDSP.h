@@ -160,7 +160,6 @@ public:
         smoothedGrDb = 0.0f;
         smoothedGrDbByChannel.fill(0.0f);
         autoGainDb = 0.0f;
-        previousAutoEnabled = false;
         previousStereoChain = false;
         stereoChainStateInitialised = false;
         stereoLinkFadeRemaining = 0;
@@ -405,8 +404,6 @@ private:
             const float alpha = 1.0f - std::exp(-(float) n / (float) (sampleRate * 0.25));
             autoGainDb += alpha * (0.0f - autoGainDb);
         }
-        previousAutoEnabled = c.autoLevel;
-
         // Apply wet-only gain compensation first, then perform true parallel
         // compression against the signal after INPUT GAIN. OUTPUT GAIN remains
         // post-mix so it affects dry and wet equally.
@@ -914,7 +911,6 @@ private:
     float smoothedGrDb = 0.0f;
     std::array<float, 2> smoothedGrDbByChannel {};
     float autoGainDb = 0.0f;
-    bool previousAutoEnabled = false;
     bool previousStereoChain = false;
     bool stereoChainStateInitialised = false;
     int stereoLinkFadeRemaining = 0;
