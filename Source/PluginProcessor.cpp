@@ -3,6 +3,37 @@
 
 namespace
 {
+    struct MeterChannelStats
+    {
+        float peak = 0.0f;
+        double energy = 0.0;
+    };
+
+    std::array<MeterChannelStats, 2> calculateStereoMeterStats(const juce::AudioBuffer<float>& buffer)
+    {
+        std::array<MeterChannelStats, 2> stats {};
+        const int samples = buffer.getNumSamples();
+        const int channelsToScan = juce::jmin(buffer.getNumChannels(), 2);
+
+        for (int ch = 0; ch < channelsToScan; ++ch)
+        {
+            auto& channelStats = stats[static_cast<size_t>(ch)];
+            const auto* data = buffer.getReadPointer(ch);
+
+            for (int i = 0; i < samples; ++i)
+            {
+                const float sample = data[i];
+                channelStats.peak = juce::jmax(channelStats.peak, std::abs(sample));
+                channelStats.energy += static_cast<double>(sample) * static_cast<double>(sample);
+            }
+        }
+
+        if (buffer.getNumChannels() == 1)
+            stats[1] = stats[0];
+
+        return stats;
+    }
+
     void updateMeterBallistic(float targetDb, float& stateDb, std::atomic<float>& destination,
                               int samples, double sampleRate,
                               float attackSeconds, float releaseSeconds)
@@ -18,8 +49,8 @@ namespace
     {
         const float inputLinear = juce::Decibels::decibelsToGain(inputPeakDb);
         const float targetGain = juce::Decibels::decibelsToGain(juce::jmin(0.0f, targetGrDb));
-        const bool limiting = ratio >= 8.0f;
-        const float compressionFactor = limiting ? 20.0f : 5.0f;
+        const float compressionFactor = juce::jmap(juce::jlimit(1.5f, 20.0f, ratio),
+                                                   1.5f, 20.0f, 5.0f, 20.0f);
         const float sensitivity = 0.5f + juce::jlimit(0.0f, 1.0f, 0.24f + ratio / 28.0f) * 4.0f;
         const float requiredAttenuation = juce::jlimit(0.0f, 1.0f,
             (1.0f / juce::jmax(0.001f, targetGain) - 1.0f) / compressionFactor);
@@ -50,8 +81,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout QuanpressorAudioProcessor::m
     auto add=[&](const char* id,const char* name,float a,float b,float step,float def,const char* suffix="",float displayScale=1.0f){ p.push_back(std::make_unique<AudioParameterFloat>(id,name,NormalisableRange<float>(a,b,step),def,String(),AudioProcessorParameter::genericParameter,[suffix,displayScale](float v,int){return String(v*displayScale,1)+suffix;},nullptr));};
     add("input","Input",-24,24,0.1f,0," dB"); add("threshold","Threshold",-48,0,0.1f,-18," dB"); add("ratio","Ratio",1.5f,20.0f,0.1f,4,":1"); add("drive","Drive",0,18,0.1f,0," dB");
     add("attack","Attack",0.02f,100,0.01f,10," ms"); add("release","Release",20,1200,1,150," ms"); add("knee","Knee",0,18,0.1f,6," dB");
-    add("makeup","Makeup",-12,24,0.1f,0," dB"); add("highFreq","High Bleed",1000,18000,1,8000," Hz"); add("highAmt","High Amount",0,1,0.001f,0," %",100.0f);
-    add("lowFreq","Low Bleed",30,600,1,120," Hz"); add("lowAmt","Low Amount",0,1,0.001f,0," %",100.0f); add("output","Output",-24,24,0.1f,0," dB");
+    add("makeup","Makeup",-12,24,0.1f,0," dB"); add("highFreq","High Preserve Frequency",1000,18000,1,8000," Hz"); add("highAmt","High Preserve Amount",0,1,0.001f,0," %",100.0f);
+    add("lowFreq","Low Preserve Frequency",30,600,1,120," Hz"); add("lowAmt","Low Preserve Amount",0,1,0.001f,0," %",100.0f); add("output","Output",-24,24,0.1f,0," dB");
     add("mix","Mix",0,100,0.1f,100," %");
     p.push_back(std::make_unique<AudioParameterChoice>("muSpeed","Time Constant",StringArray{"1","2","3","4","5","6"},2));
     p.push_back(std::make_unique<AudioParameterChoice>("vuMode","VU Mode",StringArray{"OUTPUT","INPUT","GR"},0));
@@ -101,30 +132,8 @@ void QuanpressorAudioProcessor::processBlock(juce::AudioBuffer<float>& b, juce::
 {
     juce::ScopedNoDenormals nd;
     const int samples = b.getNumSamples();
-    const int channels = b.getNumChannels();
 
-    std::array<float, 2> rawInputPeaks {};
-    std::array<double, 2> rawInputEnergies {};
-    for (int ch = 0; ch < channels; ++ch)
-    {
-        const float channelPeak = b.getMagnitude(ch, 0, samples);
-        if (ch < 2)
-            rawInputPeaks[static_cast<size_t>(ch)] = channelPeak;
-
-        const auto* inputData = b.getReadPointer(ch);
-        for (int i = 0; i < samples; ++i)
-        {
-            const double square = static_cast<double>(inputData[i]) * static_cast<double>(inputData[i]);
-            if (ch < 2)
-                rawInputEnergies[static_cast<size_t>(ch)] += square;
-        }
-    }
-
-    if (channels == 1)
-    {
-        rawInputPeaks[1] = rawInputPeaks[0];
-        rawInputEnergies[1] = rawInputEnergies[0];
-    }
+    const auto rawInputStats = calculateStereoMeterStats(b);
 
     QuanpressorDSP::Controls c;
     c.mode = static_cast<QuanpressorDSP::Mode>(static_cast<int>(*apvts.getRawParameterValue("mode")));
@@ -158,7 +167,7 @@ void QuanpressorAudioProcessor::processBlock(juce::AudioBuffer<float>& b, juce::
                                 * static_cast<double>(inputGainLinear);
     for (size_t ch = 0; ch < inputVu.size(); ++ch)
     {
-        const double meanSquare = rawInputEnergies[ch] * inputGainPower
+        const double meanSquare = rawInputStats[ch].energy * inputGainPower
                                 / static_cast<double>(juce::jmax(1, samples));
         meters.inputVuDb[ch].store(inputVu[ch].process(meanSquare, samples),
                                    std::memory_order_relaxed);
@@ -166,7 +175,7 @@ void QuanpressorAudioProcessor::processBlock(juce::AudioBuffer<float>& b, juce::
     std::array<float, 2> inputPeakTargetDb {};
     for (size_t ch = 0; ch < inputPeakTargetDb.size(); ++ch)
     {
-        inputPeakTargetDb[ch] = juce::Decibels::gainToDecibels(rawInputPeaks[ch] * inputGainLinear, -100.0f);
+        inputPeakTargetDb[ch] = juce::Decibels::gainToDecibels(rawInputStats[ch].peak * inputGainLinear, -100.0f);
         updateMeterBallistic(inputPeakTargetDb[ch], inputPeakBallisticDb[ch], meters.inputDb[ch],
                              samples, getSampleRate(), 0.008f, 0.140f);
     }
@@ -184,7 +193,7 @@ void QuanpressorAudioProcessor::processBlock(juce::AudioBuffer<float>& b, juce::
     }
     for (size_t ch = 0; ch < inputRmsBallisticDb.size(); ++ch)
     {
-        const float channelRms = static_cast<float>(std::sqrt(rawInputEnergies[ch]
+        const float channelRms = static_cast<float>(std::sqrt(rawInputStats[ch].energy
                                                               / juce::jmax(1, samples)));
         const float targetDb = juce::Decibels::gainToDecibels(channelRms * inputGainLinear, -100.0f);
         updateMeterBallistic(targetDb, inputRmsBallisticDb[ch], meters.inputRmsDb[ch],
@@ -225,38 +234,17 @@ void QuanpressorAudioProcessor::processBlock(juce::AudioBuffer<float>& b, juce::
     c.grMatch = false;
     dsp.process(b, c);
 
-    std::array<float, 2> outputPeaks {};
-    std::array<double, 2> outputEnergies {};
-    for (int ch = 0; ch < channels; ++ch)
-    {
-        const float channelPeak = b.getMagnitude(ch, 0, samples);
-        if (ch < 2)
-            outputPeaks[static_cast<size_t>(ch)] = channelPeak;
-
-        const auto* data = b.getReadPointer(ch);
-        for (int i = 0; i < samples; ++i)
-        {
-            const double square = static_cast<double>(data[i]) * static_cast<double>(data[i]);
-            if (ch < 2)
-                outputEnergies[static_cast<size_t>(ch)] += square;
-        }
-    }
-
-    if (channels == 1)
-    {
-        outputPeaks[1] = outputPeaks[0];
-        outputEnergies[1] = outputEnergies[0];
-    }
+    const auto outputStats = calculateStereoMeterStats(b);
 
     for (size_t ch = 0; ch < outputPeakBallisticDb.size(); ++ch)
     {
-        const float targetDb = juce::Decibels::gainToDecibels(outputPeaks[ch], -100.0f);
+        const float targetDb = juce::Decibels::gainToDecibels(outputStats[ch].peak, -100.0f);
         updateMeterBallistic(targetDb, outputPeakBallisticDb[ch], meters.outputDb[ch],
                              samples, getSampleRate(), 0.008f, 0.140f);
     }
     for (size_t ch = 0; ch < outputRmsBallisticDb.size(); ++ch)
     {
-        const float channelRms = static_cast<float>(std::sqrt(outputEnergies[ch]
+        const float channelRms = static_cast<float>(std::sqrt(outputStats[ch].energy
                                                               / juce::jmax(1, samples)));
         const float targetDb = juce::Decibels::gainToDecibels(channelRms, -100.0f);
         updateMeterBallistic(targetDb, outputRmsBallisticDb[ch], meters.outputRmsDb[ch],
@@ -335,7 +323,7 @@ void QuanpressorAudioProcessor::processBlock(juce::AudioBuffer<float>& b, juce::
     // MAKEUP, MIX and OUTPUT operation.
     for (size_t ch = 0; ch < outputVu.size(); ++ch)
     {
-        const double meanSquare = outputEnergies[ch]
+        const double meanSquare = outputStats[ch].energy
                                 / static_cast<double>(juce::jmax(1, samples));
         meters.outputVuDb[ch].store(outputVu[ch].process(meanSquare, samples),
                                     std::memory_order_relaxed);

@@ -536,10 +536,10 @@ QuanpressorAudioProcessorEditor::QuanpressorAudioProcessorEditor(QuanpressorAudi
 
     optoReset.setTooltip("Resets the photocell memory for a fresh compression response.");
     noMeter.setTooltip("No Meter Mode\nHides all meters to encourage mixing by ear.");
-    highFreq.setTooltip("High Bleed\nBlends high frequencies into the sidechain detector.");
-    highAmt.setTooltip("High Bleed\nBlends high frequencies into the sidechain detector.");
-    lowFreq.setTooltip("Low Bleed\nBlends low frequencies into the sidechain detector.");
-    lowAmt.setTooltip("Low Bleed\nBlends low frequencies into the sidechain detector.");
+    highFreq.setTooltip("High Preserve Frequency\nSets the high-frequency band blended back after compression.");
+    highAmt.setTooltip("High Preserve Amount\nBlends the preserved high-frequency band back into the compressed signal.");
+    lowFreq.setTooltip("Low Preserve Frequency\nSets the low-frequency band blended back after compression.");
+    lowAmt.setTooltip("Low Preserve Amount\nBlends the preserved low-frequency band back into the compressed signal.");
     autoLevel.setTooltip("Auto Gain\nAutomatically compensates for output level changes.");
     autoRelease.setTooltip("Auto Release\nAutomatically adjusts release time based on the input signal.");
     grMatch.setTooltip("Matches the amount of gain reduction across compressor types.");
