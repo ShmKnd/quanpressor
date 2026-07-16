@@ -13,6 +13,7 @@ class QuanpressorDSP
 public:
     enum Mode { FET = 0, OPTO, VCA, VARIMU };
     static constexpr double modeCrossfadeSeconds = 0.030;
+    static constexpr double stereoLinkCrossfadeSeconds = 0.005;
 
     struct Controls
     {
@@ -161,6 +162,11 @@ public:
         autoGainDb = 0.0f;
         previousAutoEnabled = false;
         previousStereoChain = false;
+        stereoChainStateInitialised = false;
+        stereoLinkFadeRemaining = 0;
+        stereoLinkFadeStartGrDb.fill(0.0f);
+        for (auto& modeGr : lastDetectorGrDbByMode)
+            modeGr.fill(0.0f);
         previousOversampling = true;
         previousOversamplingFactor = 2;
         modeAverageGr.fill(0.0f);
@@ -232,17 +238,17 @@ private:
             previousOversamplingFactor = oversamplingFactor;
         }
 
-        if (c.stereoChain && !previousStereoChain)
+        if (!stereoChainStateInitialised)
         {
-            engines[(size_t) currentMode].reset();
-            gainEngines[(size_t) currentMode].reset();
-            if (xfadeRemaining > 0)
-            {
-                engines[(size_t) oldMode].reset();
-                gainEngines[(size_t) oldMode].reset();
-            }
+            previousStereoChain = c.stereoChain;
+            stereoChainStateInitialised = true;
         }
-        previousStereoChain = c.stereoChain;
+        else if (c.stereoChain != previousStereoChain)
+        {
+            stereoLinkFadeStartGrDb = lastDetectorGrDbByMode[(size_t) currentMode];
+            stereoLinkFadeRemaining = stereoLinkCrossfadeSamples();
+            previousStereoChain = c.stereoChain;
+        }
 
         requestedMode = c.mode;
         if (requestedMode != currentMode && xfadeRemaining == 0)
@@ -262,6 +268,7 @@ private:
             nativeModeDelays[(size_t) currentMode].reset();
             modeAverageGr[(size_t) currentMode] = 0.0f;
             transitionTrimDb = 0.0f;
+            stereoLinkFadeRemaining = 0;
             xfadeRemaining = modeCrossfadeSamples();
         }
 
@@ -319,7 +326,7 @@ private:
             juce::AudioBuffer<float> oldDetectorBlock(detectorBuffer.getArrayOfWritePointers(),
                                                        channels, oldModeSamples);
             const float oldThreshold = juce::jlimit(-48.0f, 0.0f, c.thresholdDb);
-            processMode(oldWetBlock, oldDetectorBlock, oldMode, c, oldThreshold);
+            processMode(oldWetBlock, oldDetectorBlock, oldMode, c, oldThreshold, nullptr, false);
             const double oldSq = bufferEnergy(oldWetBlock, channels, oldModeSamples);
             const double newSq = bufferEnergy(buffer, channels, oldModeSamples);
 
@@ -482,11 +489,17 @@ public:
     int getLatencySamples() const noexcept { return nonlinearLatencySamples; }
     int getModeCrossfadeRemainingSamples() const noexcept { return xfadeRemaining; }
     float getModeTransitionTrimDb() const noexcept { return transitionTrimDb; }
+    int getStereoLinkCrossfadeRemainingSamples() const noexcept { return stereoLinkFadeRemaining; }
 
 private:
     int modeCrossfadeSamples() const noexcept
     {
         return juce::jmax(1, juce::roundToInt(modeCrossfadeSeconds * sampleRate));
+    }
+
+    int stereoLinkCrossfadeSamples() const noexcept
+    {
+        return juce::jmax(1, juce::roundToInt(stereoLinkCrossfadeSeconds * sampleRate));
     }
 
     void resetNonlinearOversampler(patina::Oversampler<float>& oversampler) noexcept
@@ -597,7 +610,8 @@ private:
                       const juce::AudioBuffer<float>& detector,
                       Mode mode, const Controls& c,
                       float effectiveThresholdDb,
-                      std::array<float, 2>* channelGrDb = nullptr)
+                      std::array<float, 2>* channelGrDb = nullptr,
+                      bool advanceStereoLinkTransition = true)
     {
         auto& e = engines[(size_t) mode];
         double grSum = 0.0;
@@ -718,20 +732,41 @@ private:
 
         for (int i = 0; i < b.getNumSamples(); ++i)
         {
+            const bool linked = c.stereoChain && detector.getNumChannels() > 1;
             float linkedGrDb = 0.0f;
-            if (c.stereoChain && detector.getNumChannels() > 1)
+            if (linked)
             {
                 float commonDetector = 0.0f;
                 for (int ch = 0; ch < detector.getNumChannels(); ++ch)
                     commonDetector = juce::jmax(commonDetector, std::abs(detector.getSample(ch, i)));
                 linkedGrDb = detectGainReduction(0, commonDetector);
+
+                // Keep the unused detector channels following the same common
+                // sidechain. Their output is discarded while linked, but their
+                // analogue memory is ready if the link is disabled later.
+                for (int ch = 1; ch < detector.getNumChannels(); ++ch)
+                    (void) detectGainReduction(ch, commonDetector);
+            }
+
+            float linkTransition = 1.0f;
+            if (advanceStereoLinkTransition && stereoLinkFadeRemaining > 0)
+            {
+                const int totalFade = stereoLinkCrossfadeSamples();
+                linkTransition = 1.0f - (float) (stereoLinkFadeRemaining - 1)
+                                              / (float) totalFade;
             }
 
             for (int ch = 0; ch < b.getNumChannels(); ++ch)
             {
-                const float grDb = c.stereoChain && detector.getNumChannels() > 1
+                const float targetGrDb = linked
                     ? linkedGrDb
                     : detectGainReduction(ch, detector.getSample(ch, i));
+                const float grDb = advanceStereoLinkTransition && stereoLinkFadeRemaining > 0
+                    ? stereoLinkFadeStartGrDb[(size_t) juce::jmin(ch, 1)]
+                        + linkTransition * (targetGrDb
+                            - stereoLinkFadeStartGrDb[(size_t) juce::jmin(ch, 1)])
+                    : targetGrDb;
+                lastDetectorGrDbByMode[(size_t) mode][(size_t) juce::jmin(ch, 1)] = grDb;
                 const float linearGain = juce::Decibels::decibelsToGain(grDb);
                 gainScratch.setSample(ch, i, linearGain);
                 grSum += juce::jmin(0.0f, grDb);
@@ -742,6 +777,9 @@ private:
                     ++channelGrCount[static_cast<size_t>(ch)];
                 }
             }
+
+            if (advanceStereoLinkTransition && stereoLinkFadeRemaining > 0)
+                --stereoLinkFadeRemaining;
         }
 
         auto& gainEngine = gainEngines[(size_t) mode];
@@ -868,6 +906,10 @@ private:
     float autoGainDb = 0.0f;
     bool previousAutoEnabled = false;
     bool previousStereoChain = false;
+    bool stereoChainStateInitialised = false;
+    int stereoLinkFadeRemaining = 0;
+    std::array<float, 2> stereoLinkFadeStartGrDb {};
+    std::array<std::array<float, 2>, 4> lastDetectorGrDbByMode {};
     bool previousOversampling = true;
     int previousOversamplingFactor = 2;
     bool previousDriveActive = false;
