@@ -658,8 +658,14 @@ private:
         PhotoCompressor::Params photoParams;
         photoParams.peakReduction = juce::jlimit(0.0f, 1.0f, 0.24f + c.ratio / 28.0f);
         photoParams.outputGain = 0.5f;
-        photoParams.mode = c.ratio >= 8.0f ? 1 : 0;
+        // Keep Patina's photocell detector in its continuous Compress topology.
+        // Quanpressor maps the exposed Ratio control to attenuation strength
+        // below, avoiding the former 8:1 Compress/Limit discontinuity.
+        photoParams.mode = 0;
         photoParams.mix = 1.0f;
+        const float optoRatioPosition = juce::jlimit(0.0f, 1.0f,
+            (c.ratio - 1.5f) / (20.0f - 1.5f));
+        const float optoAttenuationStrength = juce::jmap(optoRatioPosition, 5.0f, 20.0f);
 
         VcaCompressor::Params vcaParams;
         vcaParams.threshold = juce::jlimit(0.0f, 1.0f, (effectiveThresholdDb + 40.0f) / 40.0f);
@@ -703,7 +709,11 @@ private:
                 {
                     const float aboveThreshold = juce::jmax(0.0f, std::abs(detectorSample) - thresholdLinear);
                     (void)e.photo.process(detectorChannel, aboveThreshold, photoParams);
-                    grDb = e.photo.getGainReductionDb(detectorChannel);
+                    const float photocellResponse = juce::jlimit(0.0f, 1.0f,
+                        e.photo.getDetectorState(detectorChannel));
+                    const float gain = 1.0f
+                        / (1.0f + photocellResponse * optoAttenuationStrength);
+                    grDb = juce::Decibels::gainToDecibels(gain, -60.0f);
                     break;
                 }
                 case VCA:
