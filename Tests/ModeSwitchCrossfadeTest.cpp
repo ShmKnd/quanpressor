@@ -1,5 +1,6 @@
 #include "../Source/QuanpressorDSP.h"
 
+#include <cmath>
 #include <iostream>
 
 int main()
@@ -12,12 +13,22 @@ int main()
 
     QuanpressorDSP::Controls controls;
     controls.oversampling = false;
+    controls.driveDb = 12.0f;
+    controls.thresholdDb = 0.0f;
     juce::AudioBuffer<float> block(2, blockSize);
-    block.clear();
+    for (int channel = 0; channel < block.getNumChannels(); ++channel)
+        for (int i = 0; i < block.getNumSamples(); ++i)
+            block.setSample(channel, i, 0.25f * std::sin(
+                juce::MathConstants<double>::twoPi * 997.0 * i / sampleRate));
     dsp.process(block, controls);
 
     controls.mode = QuanpressorDSP::OPTO;
     dsp.process(block, controls);
+    if (std::abs(dsp.getModeTransitionTrimDb()) < 1.0e-6f)
+    {
+        std::cerr << "Expected a temporary level trim during a signal-bearing crossfade\n";
+        return 1;
+    }
     const int expectedAfterFirstBlock = juce::roundToInt(
         QuanpressorDSP::modeCrossfadeSeconds * sampleRate) - blockSize;
     if (dsp.getModeCrossfadeRemainingSamples() != expectedAfterFirstBlock)
@@ -29,6 +40,13 @@ int main()
 
     while (dsp.getModeCrossfadeRemainingSamples() > 0)
         dsp.process(block, controls);
+
+    if (dsp.getModeTransitionTrimDb() != 0.0f)
+    {
+        std::cerr << "Mode transition trim persisted after the crossfade: "
+                  << dsp.getModeTransitionTrimDb() << " dB\n";
+        return 1;
+    }
 
     const int expectedTotalSamples = juce::roundToInt(
         QuanpressorDSP::modeCrossfadeSeconds * sampleRate);

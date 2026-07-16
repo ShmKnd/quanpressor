@@ -164,7 +164,7 @@ public:
         previousOversampling = true;
         previousOversamplingFactor = 2;
         modeAverageGr.fill(0.0f);
-        architectureTrimDb.fill(0.0f);
+        transitionTrimDb = 0.0f;
         previousDriveActive = false;
         displayGraphGainDb.store(0.0f, std::memory_order_relaxed);
     }
@@ -261,6 +261,7 @@ private:
             oversampling4xAlignmentDelays[(size_t) currentMode].reset();
             nativeModeDelays[(size_t) currentMode].reset();
             modeAverageGr[(size_t) currentMode] = 0.0f;
+            transitionTrimDb = 0.0f;
             xfadeRemaining = modeCrossfadeSamples();
         }
 
@@ -324,13 +325,14 @@ private:
 
             const float oldDb = rmsDb(oldSq, oldModeSamples * channels);
             const float newDb = rmsDb(newSq, oldModeSamples * channels);
-            const float difference = juce::jlimit(-9.0f, 9.0f, oldDb - newDb);
-            architectureTrimDb[(size_t) currentMode] += 0.08f
-                * (difference - architectureTrimDb[(size_t) currentMode]);
-
-            const float newAlign = juce::Decibels::decibelsToGain(architectureTrimDb[(size_t) currentMode]);
-            for (int ch = 0; ch < channels; ++ch)
-                juce::FloatVectorOperations::multiply(buffer.getWritePointer(ch), newAlign, n);
+            if (oldDb > -80.0f && newDb > -80.0f)
+            {
+                const float difference = juce::jlimit(-9.0f, 9.0f, oldDb - newDb);
+                constexpr double trimTrackingSeconds = 0.128;
+                const float trimAlpha = 1.0f - std::exp(
+                    -(float) oldModeSamples / (float) (sampleRate * trimTrackingSeconds));
+                transitionTrimDb += trimAlpha * (difference - transitionTrimDb);
+            }
 
             const int totalFade = modeCrossfadeSamples();
             for (int i = 0; i < oldModeSamples; ++i)
@@ -338,17 +340,16 @@ private:
                 const float t = 1.0f - (float) xfadeRemaining / (float) totalFade;
                 const float oldMix = std::sqrt(juce::jlimit(0.0f, 1.0f, 1.0f - t));
                 const float newMix = std::sqrt(juce::jlimit(0.0f, 1.0f, t));
+                const float temporaryAlign = juce::Decibels::decibelsToGain(
+                    transitionTrimDb * (1.0f - t));
                 for (int ch = 0; ch < channels; ++ch)
                     buffer.setSample(ch, i, oldWet.getSample(ch, i) * oldMix
-                                          + buffer.getSample(ch, i) * newMix);
+                                          + buffer.getSample(ch, i) * temporaryAlign * newMix);
                 --xfadeRemaining;
             }
-        }
-        else
-        {
-            const float align = juce::Decibels::decibelsToGain(architectureTrimDb[(size_t) currentMode]);
-            for (int ch = 0; ch < channels; ++ch)
-                juce::FloatVectorOperations::multiply(buffer.getWritePointer(ch), align, n);
+
+            if (xfadeRemaining == 0)
+                transitionTrimDb = 0.0f;
         }
 
         // All nonlinear modes have the same oversampling latency. Delay the dry
@@ -480,6 +481,7 @@ public:
     float getGraphGainDb() const noexcept { return displayGraphGainDb.load(std::memory_order_relaxed); }
     int getLatencySamples() const noexcept { return nonlinearLatencySamples; }
     int getModeCrossfadeRemainingSamples() const noexcept { return xfadeRemaining; }
+    float getModeTransitionTrimDb() const noexcept { return transitionTrimDb; }
 
 private:
     int modeCrossfadeSamples() const noexcept
@@ -870,7 +872,7 @@ private:
     int previousOversamplingFactor = 2;
     bool previousDriveActive = false;
     std::array<float, 4> modeAverageGr {};
-    std::array<float, 4> architectureTrimDb {};
+    float transitionTrimDb = 0.0f;
     std::atomic<bool> photoResetRequested { false };
     std::atomic<float> displayThresholdDb { -18.0f };
     std::atomic<float> displayGraphGainDb { 0.0f };
