@@ -12,6 +12,7 @@ class QuanpressorDSP
 {
 public:
     enum Mode { FET = 0, OPTO, VCA, VARIMU };
+    static constexpr double modeCrossfadeSeconds = 0.030;
 
     struct Controls
     {
@@ -254,7 +255,7 @@ private:
             oversampling4xAlignmentDelays[(size_t) currentMode].reset();
             nativeModeDelays[(size_t) currentMode].reset();
             modeAverageGr[(size_t) currentMode] = 0.0f;
-            xfadeRemaining = juce::roundToInt(0.15 * sampleRate);
+            xfadeRemaining = modeCrossfadeSamples();
         }
 
         lowSplit.setType(juce::dsp::StateVariableTPTFilterType::lowpass);
@@ -293,16 +294,21 @@ private:
         const float newGr = processMode(buffer, detectorBuffer, currentMode, c, effectiveThreshold,
                                         &newGrByChannel);
 
-        double oldSq = 0.0, newSq = bufferEnergy(buffer, channels, n);
         if (xfadeRemaining > 0)
         {
-            copyBuffer(oldWet, modeInput, channels, n);
+            const int oldModeSamples = juce::jmin(n, xfadeRemaining);
+            copyBuffer(oldWet, modeInput, channels, oldModeSamples);
+            juce::AudioBuffer<float> oldWetBlock(oldWet.getArrayOfWritePointers(),
+                                                  channels, oldModeSamples);
+            juce::AudioBuffer<float> oldDetectorBlock(detectorBuffer.getArrayOfWritePointers(),
+                                                       channels, oldModeSamples);
             const float oldThreshold = juce::jlimit(-48.0f, 0.0f, c.thresholdDb);
-            processMode(oldWet, detectorBuffer, oldMode, c, oldThreshold);
-            oldSq = bufferEnergy(oldWet, channels, n);
+            processMode(oldWetBlock, oldDetectorBlock, oldMode, c, oldThreshold);
+            const double oldSq = bufferEnergy(oldWetBlock, channels, oldModeSamples);
+            const double newSq = bufferEnergy(buffer, channels, oldModeSamples);
 
-            const float oldDb = rmsDb(oldSq, n * channels);
-            const float newDb = rmsDb(newSq, n * channels);
+            const float oldDb = rmsDb(oldSq, oldModeSamples * channels);
+            const float newDb = rmsDb(newSq, oldModeSamples * channels);
             const float difference = juce::jlimit(-9.0f, 9.0f, oldDb - newDb);
             architectureTrimDb[(size_t) currentMode] += 0.08f
                 * (difference - architectureTrimDb[(size_t) currentMode]);
@@ -311,19 +317,16 @@ private:
             for (int ch = 0; ch < channels; ++ch)
                 juce::FloatVectorOperations::multiply(buffer.getWritePointer(ch), newAlign, n);
 
-            const int totalFade = juce::jmax(1, juce::roundToInt(0.15 * sampleRate));
-            for (int i = 0; i < n; ++i)
+            const int totalFade = modeCrossfadeSamples();
+            for (int i = 0; i < oldModeSamples; ++i)
             {
-                if (xfadeRemaining > 0)
-                {
-                    const float t = 1.0f - (float) xfadeRemaining / (float) totalFade;
-                    const float oldMix = std::sqrt(juce::jlimit(0.0f, 1.0f, 1.0f - t));
-                    const float newMix = std::sqrt(juce::jlimit(0.0f, 1.0f, t));
-                    for (int ch = 0; ch < channels; ++ch)
-                        buffer.setSample(ch, i, oldWet.getSample(ch, i) * oldMix
-                                              + buffer.getSample(ch, i) * newMix);
-                    --xfadeRemaining;
-                }
+                const float t = 1.0f - (float) xfadeRemaining / (float) totalFade;
+                const float oldMix = std::sqrt(juce::jlimit(0.0f, 1.0f, 1.0f - t));
+                const float newMix = std::sqrt(juce::jlimit(0.0f, 1.0f, t));
+                for (int ch = 0; ch < channels; ++ch)
+                    buffer.setSample(ch, i, oldWet.getSample(ch, i) * oldMix
+                                          + buffer.getSample(ch, i) * newMix);
+                --xfadeRemaining;
             }
         }
         else
@@ -461,8 +464,14 @@ public:
     float getEffectiveThresholdDb() const noexcept { return displayThresholdDb.load(std::memory_order_relaxed); }
     float getGraphGainDb() const noexcept { return displayGraphGainDb.load(std::memory_order_relaxed); }
     int getLatencySamples() const noexcept { return nonlinearLatencySamples; }
+    int getModeCrossfadeRemainingSamples() const noexcept { return xfadeRemaining; }
 
 private:
+    int modeCrossfadeSamples() const noexcept
+    {
+        return juce::jmax(1, juce::roundToInt(modeCrossfadeSeconds * sampleRate));
+    }
+
     void resetNonlinearOversampler(patina::Oversampler<float>& oversampler) noexcept
     {
         oversampler.reset();
