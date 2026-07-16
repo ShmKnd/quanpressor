@@ -123,6 +123,12 @@ public:
             transformer.prepare(1, sr);
         lowSplit.prepare({ sr, (juce::uint32) maxBlock, (juce::uint32) channels });
         highSplit.prepare({ sr, (juce::uint32) maxBlock, (juce::uint32) channels });
+        lowSplit.setType(juce::dsp::StateVariableTPTFilterType::lowpass);
+        highSplit.setType(juce::dsp::StateVariableTPTFilterType::lowpass);
+        lowSplitCutoffHz = 120.0f;
+        highSplitCutoffHz = 8000.0f;
+        lowSplit.setCutoffFrequency(lowSplitCutoffHz);
+        highSplit.setCutoffFrequency(highSplitCutoffHz);
         sidechainHigh.prepare({ sr, (juce::uint32) maxBlock, (juce::uint32) channels });
         sidechainHigh.setType(juce::dsp::StateVariableTPTFilterType::highpass);
         sidechainHigh.setCutoffFrequency(120.0f);
@@ -258,10 +264,19 @@ private:
             xfadeRemaining = modeCrossfadeSamples();
         }
 
-        lowSplit.setType(juce::dsp::StateVariableTPTFilterType::lowpass);
-        highSplit.setType(juce::dsp::StateVariableTPTFilterType::lowpass);
-        lowSplit.setCutoffFrequency(juce::jlimit(30.0f, 600.0f, c.lowBleedHz));
-        highSplit.setCutoffFrequency(juce::jlimit(1000.0f, 18000.0f, c.highBleedHz));
+        const float requestedLowSplitHz = juce::jlimit(30.0f, 600.0f, c.lowBleedHz);
+        if (requestedLowSplitHz != lowSplitCutoffHz)
+        {
+            lowSplitCutoffHz = requestedLowSplitHz;
+            lowSplit.setCutoffFrequency(lowSplitCutoffHz);
+        }
+
+        const float requestedHighSplitHz = juce::jlimit(1000.0f, 18000.0f, c.highBleedHz);
+        if (requestedHighSplitHz != highSplitCutoffHz)
+        {
+            highSplitCutoffHz = requestedHighSplitHz;
+            highSplit.setCutoffFrequency(highSplitCutoffHz);
+        }
 
         const float inputGain = juce::Decibels::decibelsToGain(c.inputDb);
         const float appliedMakeupDb = c.autoLevel ? 0.0f : c.makeupDb;
@@ -837,6 +852,8 @@ private:
     std::array<FixedDelay, 4> nativeModeDelays;
     FixedDelay inputPathDelay;
     juce::dsp::StateVariableTPTFilter<float> lowSplit, highSplit, sidechainHigh;
+    float lowSplitCutoffHz = 120.0f;
+    float highSplitCutoffHz = 8000.0f;
     double sampleRate = 44100.0;
     int numChannels = 2;
     int allocatedSamples = 0;
