@@ -32,7 +32,16 @@ namespace
 
 QuanpressorAudioProcessor::QuanpressorAudioProcessor()
 : juce::AudioProcessor(juce::AudioProcessor::BusesProperties().withInput("Input",juce::AudioChannelSet::stereo(),true).withOutput("Output",juce::AudioChannelSet::stereo(),true)),
-  apvts(*this,nullptr,"PARAMS",makeLayout()) {}
+  apvts(*this,nullptr,"PARAMS",makeLayout())
+{
+    apvts.addParameterListener("threshold", this);
+}
+
+QuanpressorAudioProcessor::~QuanpressorAudioProcessor()
+{
+    apvts.removeParameterListener("threshold", this);
+    cancelPendingUpdate();
+}
 
 juce::AudioProcessorValueTreeState::ParameterLayout QuanpressorAudioProcessor::makeLayout()
 {
@@ -75,6 +84,11 @@ void QuanpressorAudioProcessor::prepareToPlay(double sr,int bs)
         static_cast<int>(*apvts.getRawParameterValue("mode")));
     grMatchThresholdDb = *apvts.getRawParameterValue("threshold");
     pendingThresholdDb.store(grMatchThresholdDb);
+    processorThresholdExpectedDb.store(grMatchThresholdDb);
+    lastExternalThresholdDb.store(grMatchThresholdDb);
+    thresholdUpdatePending.store(false);
+    processorThresholdWriteActive.store(false);
+    grMatchCancellationPending.store(false);
     grMatchInputLevelDb = -100.0f;
     grMatchWindowGrSeconds = 0.0;
     grMatchWindowSeconds = 0.0f;
@@ -177,7 +191,8 @@ void QuanpressorAudioProcessor::processBlock(juce::AudioBuffer<float>& b, juce::
                              samples, getSampleRate(), 0.300f, 0.650f);
     }
 
-    const bool grMatchEnabled = c.grMatch;
+    const bool grMatchEnabled = c.grMatch
+                             && !grMatchCancellationPending.load(std::memory_order_acquire);
     const auto requestedMode = c.mode;
 
     if (grMatchEnabled && requestedMode != previousGrMatchMode)
@@ -196,6 +211,7 @@ void QuanpressorAudioProcessor::processBlock(juce::AudioBuffer<float>& b, juce::
         {
             c.thresholdDb = grMatchThresholdDb;
             pendingThresholdDb.store(grMatchThresholdDb, std::memory_order_relaxed);
+            thresholdUpdatePending.store(true, std::memory_order_release);
             triggerAsyncUpdate();
         }
     }
@@ -291,6 +307,7 @@ void QuanpressorAudioProcessor::processBlock(juce::AudioBuffer<float>& b, juce::
                 if (std::abs(grMatchThresholdDb - c.thresholdDb) >= 0.05f)
                 {
                     pendingThresholdDb.store(grMatchThresholdDb, std::memory_order_relaxed);
+                    thresholdUpdatePending.store(true, std::memory_order_release);
                     triggerAsyncUpdate();
                 }
 
@@ -333,14 +350,75 @@ void QuanpressorAudioProcessor::processBlock(juce::AudioBuffer<float>& b, juce::
 }
 void QuanpressorAudioProcessor::handleAsyncUpdate()
 {
+    const auto disableGrMatch = [this]
+    {
+        if (auto* grMatch = apvts.getParameter("grMatch");
+            grMatch != nullptr && grMatch->getValue() > 0.5f)
+            grMatch->setValueNotifyingHost(0.0f);
+        meters.grMatching.store(false, std::memory_order_relaxed);
+    };
+
+    if (grMatchCancellationPending.exchange(false, std::memory_order_acq_rel))
+    {
+        thresholdUpdatePending.store(false, std::memory_order_release);
+        disableGrMatch();
+        return;
+    }
+
+    if (!thresholdUpdatePending.exchange(false, std::memory_order_acq_rel))
+        return;
+
     if (auto* threshold = apvts.getParameter("threshold"))
     {
         const float plainValue = pendingThresholdDb.load(std::memory_order_relaxed);
-        const float normalized = threshold->convertTo0to1(plainValue);
-        threshold->setValueNotifyingHost(normalized);
+        processorThresholdExpectedDb.store(plainValue, std::memory_order_relaxed);
+        processorThresholdWriteActive.store(true, std::memory_order_release);
+        threshold->setValueNotifyingHost(threshold->convertTo0to1(plainValue));
+        processorThresholdWriteActive.store(false, std::memory_order_release);
+
+        // If host automation raced the internal write, the listener captured its
+        // value. Restore that external value and relinquish GR Match ownership.
+        if (grMatchCancellationPending.exchange(false, std::memory_order_acq_rel))
+        {
+            thresholdUpdatePending.store(false, std::memory_order_release);
+            disableGrMatch();
+            const float externalValue = lastExternalThresholdDb.load(std::memory_order_relaxed);
+            processorThresholdExpectedDb.store(externalValue, std::memory_order_relaxed);
+            processorThresholdWriteActive.store(true, std::memory_order_release);
+            threshold->setValueNotifyingHost(threshold->convertTo0to1(externalValue));
+            processorThresholdWriteActive.store(false, std::memory_order_release);
+        }
+    }
+}
+
+void QuanpressorAudioProcessor::parameterChanged(const juce::String& parameterId, float newValue)
+{
+    if (parameterId != "threshold" || restoringState.load(std::memory_order_acquire))
+        return;
+
+    const bool expectedProcessorWrite = processorThresholdWriteActive.load(std::memory_order_acquire)
+        && std::abs(newValue - processorThresholdExpectedDb.load(std::memory_order_relaxed)) < 0.051f;
+    if (expectedProcessorWrite)
+        return;
+
+    if (apvts.getRawParameterValue("grMatch")->load(std::memory_order_relaxed) > 0.5f)
+    {
+        lastExternalThresholdDb.store(newValue, std::memory_order_relaxed);
+        thresholdUpdatePending.store(false, std::memory_order_release);
+        grMatchCancellationPending.store(true, std::memory_order_release);
+        meters.grMatching.store(false, std::memory_order_relaxed);
+        triggerAsyncUpdate();
     }
 }
 void QuanpressorAudioProcessor::getStateInformation(juce::MemoryBlock& d){ auto x=apvts.copyState().createXml(); copyXmlToBinary(*x,d); }
-void QuanpressorAudioProcessor::setStateInformation(const void* d,int n){ if(auto x=getXmlFromBinary(d,n)) apvts.replaceState(juce::ValueTree::fromXml(*x)); }
+void QuanpressorAudioProcessor::setStateInformation(const void* d,int n)
+{
+    if (auto x = getXmlFromBinary(d,n))
+    {
+        restoringState.store(true, std::memory_order_release);
+        apvts.replaceState(juce::ValueTree::fromXml(*x));
+        restoringState.store(false, std::memory_order_release);
+    }
+}
 juce::AudioProcessorEditor* QuanpressorAudioProcessor::createEditor(){ return new QuanpressorAudioProcessorEditor(*this); }
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter(){ return new QuanpressorAudioProcessor(); }

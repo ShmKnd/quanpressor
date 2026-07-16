@@ -5,11 +5,15 @@
 #include "Metering.h"
 #include "OutputVuBallistics.h"
 
-class QuanpressorAudioProcessor : public juce::AudioProcessor, private juce::AsyncUpdater
+class GrMatchThresholdOwnershipTestAccess;
+
+class QuanpressorAudioProcessor : public juce::AudioProcessor,
+                                  private juce::AsyncUpdater,
+                                  private juce::AudioProcessorValueTreeState::Listener
 {
 public:
     QuanpressorAudioProcessor();
-    ~QuanpressorAudioProcessor() override { cancelPendingUpdate(); }
+    ~QuanpressorAudioProcessor() override;
     void prepareToPlay(double,int) override; void releaseResources() override {}
     bool isBusesLayoutSupported(const juce::AudioProcessor::BusesLayout&) const override;
     void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
@@ -26,7 +30,9 @@ public:
     QuanpressorMeters meters;
     void requestOptoReset() noexcept { dsp.requestPhotoCellReset(); }
 private:
+    friend class GrMatchThresholdOwnershipTestAccess;
     void handleAsyncUpdate() override;
+    void parameterChanged(const juce::String& parameterId, float newValue) override;
 
     QuanpressorDSP dsp;
     int historyCounter = 0;
@@ -48,5 +54,11 @@ private:
     int grMatchStableWindows = 0;
     bool grMatchActive = false;
     std::atomic<float> pendingThresholdDb { -18.0f };
+    std::atomic<float> processorThresholdExpectedDb { -18.0f };
+    std::atomic<float> lastExternalThresholdDb { -18.0f };
+    std::atomic<bool> thresholdUpdatePending { false };
+    std::atomic<bool> processorThresholdWriteActive { false };
+    std::atomic<bool> grMatchCancellationPending { false };
+    std::atomic<bool> restoringState { false };
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(QuanpressorAudioProcessor)
 };
