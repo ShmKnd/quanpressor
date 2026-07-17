@@ -24,6 +24,10 @@
             file="Source/QuanpressorDSP.h"/>
     </GROUP>
     <GROUP id="{4A11D255-50D1-EA2D-5225-5AE14D76DEDA}" name="Assets">
+      <FILE id="Bi6oEC" name="OS_x2_ON.png" compile="0" resource="1" file="Assets/OS_x2_ON.png"/>
+      <FILE id="ziwO63" name="OS_x2.png" compile="0" resource="1" file="Assets/OS_x2.png"/>
+      <FILE id="uTOwc1" name="OS_x4_ON.png" compile="0" resource="1" file="Assets/OS_x4_ON.png"/>
+      <FILE id="zdrYiu" name="OS_x4.png" compile="0" resource="1" file="Assets/OS_x4.png"/>
       <FILE id="QfZVEF" name="NoMeterButton_ON.png" compile="0" resource="1"
             file="Assets/NoMeterButton_ON.png"/>
       <FILE id="VPa2pD" name="VU_GRmode_ON.png" compile="0" resource="1"

@@ -55,7 +55,7 @@ public:
         enum class Kind
         {
             Fet, Opto, Vca, VariMu, GrMatch, AutoRelease, AutoGain, StChain, ScFilter, ResetPhotocell,
-            VuOutput, VuInput, VuGr, NoMeter
+            VuOutput, VuInput, VuGr, NoMeter, Os2, Os4
         };
 
         explicit ImageButton(const juce::String& name) : juce::Button(name) {}
@@ -141,6 +141,7 @@ private:
     void updateArchitectureControls();
     void setModeFromButton(int index);
     void setVuModeFromButton(int index);
+    void setOversamplingFromButton(int factor);
     void updateMeterPrivacy(bool enabled, bool forceCapture = false);
     void addKnob(Knob&, const char*);
 
@@ -167,6 +168,8 @@ private:
     ImageButton stereoChain { "ST CHAIN" };
     ImageButton optoReset { "RESET PHOTOCELL" };
     ImageButton noMeter { "NO METER" };
+    ImageButton oversampling2x { "OS x2" };
+    ImageButton oversampling4x { "OS x4" };
 
     Knob input, threshold, ratio, drive, attack, release, knee, makeup;
     Knob highFreq, highAmt, lowFreq, lowAmt, output, mix, timeConstant;

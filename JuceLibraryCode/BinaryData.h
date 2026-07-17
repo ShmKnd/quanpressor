@@ -8,6 +8,18 @@
 
 namespace BinaryData
 {
+    extern const char*   OS_x2_ON_png;
+    const int            OS_x2_ON_pngSize = 1831;
+
+    extern const char*   OS_x2_png;
+    const int            OS_x2_pngSize = 3726;
+
+    extern const char*   OS_x4_ON_png;
+    const int            OS_x4_ON_pngSize = 1780;
+
+    extern const char*   OS_x4_png;
+    const int            OS_x4_pngSize = 3642;
+
     extern const char*   NoMeterButton_ON_png;
     const int            NoMeterButton_ON_pngSize = 5151;
 
@@ -24,16 +36,16 @@ namespace BinaryData
     const int            Auto_Gain_Button_pngSize = 5003;
 
     extern const char*   Auto_Gain_Button_ON_png;
-    const int            Auto_Gain_Button_ON_pngSize = 5722;
+    const int            Auto_Gain_Button_ON_pngSize = 5526;
 
     extern const char*   Auto_Release_Button_png;
     const int            Auto_Release_Button_pngSize = 5062;
 
     extern const char*   Auto_Release_Button_ON_png;
-    const int            Auto_Release_Button_ON_pngSize = 5631;
+    const int            Auto_Release_Button_ON_pngSize = 5597;
 
     extern const char*   BG_png;
-    const int            BG_pngSize = 2697467;
+    const int            BG_pngSize = 2702687;
 
     extern const char*   BlueKnob_png;
     const int            BlueKnob_pngSize = 4607;
@@ -48,7 +60,7 @@ namespace BinaryData
     const int            GR_MATCH_Button_pngSize = 4905;
 
     extern const char*   GR_MATCH_Button_ON_png;
-    const int            GR_MATCH_Button_ON_pngSize = 5654;
+    const int            GR_MATCH_Button_ON_pngSize = 5473;
 
     extern const char*   GrayKnob_png;
     const int            GrayKnob_pngSize = 10522;
@@ -99,13 +111,13 @@ namespace BinaryData
     const int            SC_Filter_pngSize = 4651;
 
     extern const char*   SC_Filter_ON_png;
-    const int            SC_Filter_ON_pngSize = 5322;
+    const int            SC_Filter_ON_pngSize = 5243;
 
     extern const char*   ST_Chain_png;
-    const int            ST_Chain_pngSize = 4758;
+    const int            ST_Chain_pngSize = 4499;
 
     extern const char*   ST_Chain_ON_png;
-    const int            ST_Chain_ON_pngSize = 5563;
+    const int            ST_Chain_ON_pngSize = 5083;
 
     extern const char*   VariMu_Button_png;
     const int            VariMu_Button_pngSize = 9568;
@@ -135,7 +147,7 @@ namespace BinaryData
     const int            YellowKnob_pngSize = 7560;
 
     // Number of elements in the namedResourceList and originalFileNames arrays.
-    const int namedResourceListSize = 42;
+    const int namedResourceListSize = 46;
 
     // Points to the start of a list of resource names.
     extern const char* namedResourceList[];

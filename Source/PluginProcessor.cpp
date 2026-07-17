@@ -92,7 +92,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout QuanpressorAudioProcessor::m
     p.push_back(std::make_unique<AudioParameterBool>("noMeter","No Meter",false));
     p.push_back(std::make_unique<AudioParameterBool>("sidechainHpf","Sidechain HPF",false));
     p.push_back(std::make_unique<AudioParameterBool>("stereoChain","Stereo Chain",true));
-    p.push_back(std::make_unique<AudioParameterBool>("oversampling","Oversampling",true));
+    p.push_back(std::make_unique<AudioParameterBool>("oversampling","Oversampling",false));
     p.push_back(std::make_unique<AudioParameterChoice>("oversamplingFactor","Oversampling Factor",
                                                        StringArray{"2x","4x"},0));
     return {p.begin(),p.end()};

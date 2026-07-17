@@ -151,6 +151,10 @@ namespace
         static const auto vuGrOn = imageFromBinary(BinaryData::VU_GRmode_ON_png, BinaryData::VU_GRmode_ON_pngSize);
         static const auto noMeter = imageFromBinary(BinaryData::NoMeterButton_png, BinaryData::NoMeterButton_pngSize);
         static const auto noMeterOn = imageFromBinary(BinaryData::NoMeterButton_ON_png, BinaryData::NoMeterButton_ON_pngSize);
+        static const auto os2 = imageFromBinary(BinaryData::OS_x2_png, BinaryData::OS_x2_pngSize);
+        static const auto os2On = imageFromBinary(BinaryData::OS_x2_ON_png, BinaryData::OS_x2_ON_pngSize);
+        static const auto os4 = imageFromBinary(BinaryData::OS_x4_png, BinaryData::OS_x4_pngSize);
+        static const auto os4On = imageFromBinary(BinaryData::OS_x4_ON_png, BinaryData::OS_x4_ON_pngSize);
 
         switch (kind)
         {
@@ -167,6 +171,8 @@ namespace
             case Kind::VuInput:     return on ? vuInputOn : vuInput;
             case Kind::VuGr:        return on ? vuGrOn : vuGr;
             case Kind::NoMeter:     return on ? noMeterOn : noMeter;
+            case Kind::Os2:         return on ? os2On : os2;
+            case Kind::Os4:         return on ? os4On : os4;
             case Kind::Fet:
             default:                return on ? fetOn : fet;
         }
@@ -453,6 +459,8 @@ QuanpressorAudioProcessorEditor::QuanpressorAudioProcessorEditor(QuanpressorAudi
     vuModeButtons[1].kind = ImageButton::Kind::VuInput;
     vuModeButtons[2].kind = ImageButton::Kind::VuGr;
     noMeter.kind = ImageButton::Kind::NoMeter;
+    oversampling2x.kind = ImageButton::Kind::Os2;
+    oversampling4x.kind = ImageButton::Kind::Os4;
 
     for (int i = 0; i < static_cast<int>(modeButtons.size()); ++i)
     {
@@ -471,6 +479,14 @@ QuanpressorAudioProcessorEditor::QuanpressorAudioProcessorEditor(QuanpressorAudi
     for (auto* button : { &autoLevel, &autoRelease, &grMatch, &sidechainHpf, &stereoChain, &noMeter })
         button->setClickingTogglesState(true);
     content.addAndMakeVisible(noMeter);
+
+    for (auto* button : { &oversampling2x, &oversampling4x })
+    {
+        button->setClickingTogglesState(false);
+        content.addAndMakeVisible(button);
+    }
+    oversampling2x.onClick = [this] { setOversamplingFromButton(2); };
+    oversampling4x.onClick = [this] { setOversamplingFromButton(4); };
 
     addKnob(input,     "input");
     addKnob(threshold, "threshold");
@@ -545,6 +561,8 @@ QuanpressorAudioProcessorEditor::QuanpressorAudioProcessorEditor(QuanpressorAudi
     grMatch.setTooltip("Matches the amount of gain reduction across compressor types.");
     stereoChain.setTooltip("ST LINK\nLinks the left and right channels for stereo compression.");
     sidechainHpf.setTooltip("SC FILTER\nHigh-pass filters the sidechain to reduce low-frequency triggering.");
+    oversampling2x.setTooltip("Oversampling x2\nRuns nonlinear compression stages at 2x sample rate.");
+    oversampling4x.setTooltip("Oversampling x4\nRuns nonlinear compression stages at 4x sample rate.");
     optoReset.onClick = [this] { proc.requestOptoReset(); };
 
     inMeter.peakValues = { &proc.meters.inputDb[0], &proc.meters.inputDb[1] };
@@ -618,6 +636,8 @@ void QuanpressorAudioProcessorEditor::resized()
 
     outMeter.setBounds(1258, 88, 88, 532);
     output.setBounds(1270, 676, 65, 65);
+    oversampling2x.setBounds(1250, 777, 49, 22);
+    oversampling4x.setBounds(1304, 777, 49, 22);
 
     placeButton(modeButtons[0], 133, 109, 94, 44);
     placeButton(modeButtons[1], 237, 109, 94, 44);
@@ -730,6 +750,33 @@ void QuanpressorAudioProcessorEditor::setVuModeFromButton(int index)
     }
 }
 
+void QuanpressorAudioProcessorEditor::setOversamplingFromButton(int factor)
+{
+    const bool enabled = proc.apvts.getRawParameterValue("oversampling")->load() > 0.5f;
+    const int currentFactor = proc.apvts.getRawParameterValue("oversamplingFactor")->load() > 0.5f ? 4 : 2;
+    const bool shouldEnable = !(enabled && currentFactor == factor);
+
+    if (shouldEnable)
+    {
+        if (auto* oversamplingFactor = proc.apvts.getParameter("oversamplingFactor"))
+        {
+            oversamplingFactor->beginChangeGesture();
+            oversamplingFactor->setValueNotifyingHost(factor >= 4 ? 1.0f : 0.0f);
+            oversamplingFactor->endChangeGesture();
+        }
+    }
+
+    if (auto* oversampling = proc.apvts.getParameter("oversampling"))
+    {
+        oversampling->beginChangeGesture();
+        oversampling->setValueNotifyingHost(shouldEnable ? 1.0f : 0.0f);
+        oversampling->endChangeGesture();
+    }
+
+    oversampling2x.setToggleState(shouldEnable && factor == 2, juce::dontSendNotification);
+    oversampling4x.setToggleState(shouldEnable && factor == 4, juce::dontSendNotification);
+}
+
 void QuanpressorAudioProcessorEditor::updateMeterPrivacy(bool shouldBeEnabled, bool forceCapture)
 {
     if (!shouldBeEnabled)
@@ -799,6 +846,13 @@ void QuanpressorAudioProcessorEditor::timerCallback()
     for (int i = 0; i < static_cast<int>(vuModeButtons.size()); ++i)
         vuModeButtons[static_cast<size_t>(i)].setToggleState(i == vuModeIndex,
                                                              juce::dontSendNotification);
+
+    const bool oversamplingEnabled = proc.apvts.getRawParameterValue("oversampling")->load() > 0.5f;
+    const int oversamplingFactor = proc.apvts.getRawParameterValue("oversamplingFactor")->load() > 0.5f ? 4 : 2;
+    oversampling2x.setToggleState(oversamplingEnabled && oversamplingFactor == 2,
+                                  juce::dontSendNotification);
+    oversampling4x.setToggleState(oversamplingEnabled && oversamplingFactor == 4,
+                                  juce::dontSendNotification);
 
     const bool hideMeters = proc.apvts.getRawParameterValue("noMeter")->load() > 0.5f;
     updateMeterPrivacy(hideMeters);

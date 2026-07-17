@@ -97,6 +97,7 @@
 		217B3CD4784A03F7E5845C33 /* Metering.h */ /* Metering.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Metering.h; path = ../../Source/Metering.h; sourceTree = SOURCE_ROOT; };
 		23EE6AAC2FDD1BFF1CA768B7 /* SC Filter_ON.png */ /* SC Filter_ON.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "SC Filter_ON.png"; path = "../../Assets/SC Filter_ON.png"; sourceTree = SOURCE_ROOT; };
 		2A9F0F0902482556AB950B52 /* Security.framework */ /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
+		2BA4C55D419DD53799B3F6E8 /* OS_x2.png */ /* OS_x2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = OS_x2.png; path = ../../Assets/OS_x2.png; sourceTree = SOURCE_ROOT; };
 		2FAB93AD111EF86DE61BC847 /* Foundation.framework */ /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		30F8535624F2E91D69D84F30 /* NoMeterButton.png */ /* NoMeterButton.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = NoMeterButton.png; path = ../../Assets/NoMeterButton.png; sourceTree = SOURCE_ROOT; };
 		32CCCD09860356617DE0C82B /* juce_audio_plugin_client */ /* juce_audio_plugin_client */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_audio_plugin_client; path = /Users/shoma/Documents/JUCE/modules/juce_audio_plugin_client; sourceTree = "<absolute>"; };
@@ -111,6 +112,7 @@
 		45CD786BD1A32D23BD6B680F /* include_juce_graphics.mm */ /* include_juce_graphics.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_graphics.mm; path = ../../JuceLibraryCode/include_juce_graphics.mm; sourceTree = SOURCE_ROOT; };
 		4AE962EEA5BBCCE12DE39A03 /* Auto Release Button_ON.png */ /* Auto Release Button_ON.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Auto Release Button_ON.png"; path = "../../Assets/Auto Release Button_ON.png"; sourceTree = SOURCE_ROOT; };
 		4B7FF0D794D49575AFF08422 /* MeterPrivacyRenderer.h */ /* MeterPrivacyRenderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MeterPrivacyRenderer.h; path = ../../Source/MeterPrivacyRenderer.h; sourceTree = SOURCE_ROOT; };
+		4B8CC7DCB28BC968B2D1A18F /* OS_x2_ON.png */ /* OS_x2_ON.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = OS_x2_ON.png; path = ../../Assets/OS_x2_ON.png; sourceTree = SOURCE_ROOT; };
 		4D0195656D4EE9A13F8C1987 /* include_juce_audio_processors.mm */ /* include_juce_audio_processors.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_audio_processors.mm; path = ../../JuceLibraryCode/include_juce_audio_processors.mm; sourceTree = SOURCE_ROOT; };
 		4EBD8984EDFAF2DDC2033999 /* juce_gui_extra */ /* juce_gui_extra */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_gui_extra; path = /Users/shoma/Documents/JUCE/modules/juce_gui_extra; sourceTree = "<absolute>"; };
 		4FDF3B2F1CA77F5E14E63DC3 /* juce_audio_formats */ /* juce_audio_formats */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_audio_formats; path = /Users/shoma/Documents/JUCE/modules/juce_audio_formats; sourceTree = "<absolute>"; };
@@ -162,6 +164,7 @@
 		AD8EEF5986CF4976CC48CFB8 /* VU_INPUTmode.png */ /* VU_INPUTmode.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = VU_INPUTmode.png; path = ../../Assets/VU_INPUTmode.png; sourceTree = SOURCE_ROOT; };
 		AFCFE8FD58E5799E3653ED83 /* KnobReflectOver.png */ /* KnobReflectOver.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = KnobReflectOver.png; path = ../../Assets/KnobReflectOver.png; sourceTree = SOURCE_ROOT; };
 		B114BABDBBA799756FE78F80 /* VU_OUTPUTmode_ON.png */ /* VU_OUTPUTmode_ON.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = VU_OUTPUTmode_ON.png; path = ../../Assets/VU_OUTPUTmode_ON.png; sourceTree = SOURCE_ROOT; };
+		B1368275E2637A2ABCFA490F /* OS_x4_ON.png */ /* OS_x4_ON.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = OS_x4_ON.png; path = ../../Assets/OS_x4_ON.png; sourceTree = SOURCE_ROOT; };
 		B4F492C7CB0D87C947F6CF72 /* MeterPrivacyRenderer.cpp */ /* MeterPrivacyRenderer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = MeterPrivacyRenderer.cpp; path = ../../Source/MeterPrivacyRenderer.cpp; sourceTree = SOURCE_ROOT; };
 		B82686B20C864711427721ED /* juce_opengl */ /* juce_opengl */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_opengl; path = /Users/shoma/Documents/JUCE/modules/juce_opengl; sourceTree = "<absolute>"; };
 		BBDEC68606F957C958059AA0 /* CoreAudioKit.framework */ /* CoreAudioKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudioKit.framework; path = System/Library/Frameworks/CoreAudioKit.framework; sourceTree = SDKROOT; };
@@ -185,6 +188,7 @@
 		E2C87F0B9121BCB897A4E110 /* FET Button.png */ /* FET Button.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "FET Button.png"; path = "../../Assets/FET Button.png"; sourceTree = SOURCE_ROOT; };
 		E350106AE381BFA3EE4C2471 /* juce_dsp */ /* juce_dsp */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_dsp; path = /Users/shoma/Documents/JUCE/modules/juce_dsp; sourceTree = "<absolute>"; };
 		E506A0C31035635656DA68CE /* GR MATCH Button.png */ /* GR MATCH Button.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "GR MATCH Button.png"; path = "../../Assets/GR MATCH Button.png"; sourceTree = SOURCE_ROOT; };
+		E611E95703F60A55D3CED9E6 /* OS_x4.png */ /* OS_x4.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = OS_x4.png; path = ../../Assets/OS_x4.png; sourceTree = SOURCE_ROOT; };
 		E9896640A62BAB79CA4EBB1D /* GrayKnob.png */ /* GrayKnob.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = GrayKnob.png; path = ../../Assets/GrayKnob.png; sourceTree = SOURCE_ROOT; };
 		EE4A6D09C2C7412CBA4C2A5A /* juce_core */ /* juce_core */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_core; path = /Users/shoma/Documents/JUCE/modules/juce_core; sourceTree = "<absolute>"; };
 		EE5D7D5AFF34EB3055598126 /* PluginProcessor.cpp */ /* PluginProcessor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PluginProcessor.cpp; path = ../../Source/PluginProcessor.cpp; sourceTree = SOURCE_ROOT; };
@@ -406,6 +410,10 @@
 		821E1F7FD6AB472EF5873B65 /* Assets */ = {
 			isa = PBXGroup;
 			children = (
+				4B8CC7DCB28BC968B2D1A18F,
+				2BA4C55D419DD53799B3F6E8,
+				B1368275E2637A2ABCFA490F,
+				E611E95703F60A55D3CED9E6,
 				EFE300A5D2D7B91B68DAED98,
 				ACC2018418112A2FFABD53CF,
 				D890F7F770C61661DC326DB5,
