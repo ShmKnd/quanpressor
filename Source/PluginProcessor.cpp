@@ -1,5 +1,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "license/AudioRestrictor.h"
+#include "license/LicenseManager.h"
 
 namespace
 {
@@ -65,6 +67,7 @@ QuanpressorAudioProcessor::QuanpressorAudioProcessor()
 : juce::AudioProcessor(juce::AudioProcessor::BusesProperties().withInput("Input",juce::AudioChannelSet::stereo(),true).withOutput("Output",juce::AudioChannelSet::stereo(),true)),
   apvts(*this,nullptr,"PARAMS",makeLayout())
 {
+    LicenseManager::getInstance().initialise("Quanpressor", 14);
     apvts.addParameterListener("threshold", this);
 }
 
@@ -335,6 +338,8 @@ void QuanpressorAudioProcessor::processBlock(juce::AudioBuffer<float>& b, juce::
         meters.pushHistory(dsp.getGrDb());
         historyCounter = 0;
     }
+
+    AudioRestrictor::apply(b, getSampleRate());
 }
 void QuanpressorAudioProcessor::handleAsyncUpdate()
 {

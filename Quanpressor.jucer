@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="QnPr031" name="Quanpressor" projectType="audioplug" useAppConfig="0"
-              addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" headerPath="../../../Patina/include;"
+              addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" headerPath="../../../Patina/include;&#10;../../libs/libsodium/include"
               pluginName="Quanpressor" pluginDesc="Quanpressor" pluginManufacturer="SoundRave"
               pluginManufacturerCode="SRav" pluginCode="QnPr" pluginFormats="buildAU,buildStandalone,buildVST3"
               companyName="SoundRave" bundleIdentifier="org.soundrave.quanpressor"
@@ -22,6 +22,16 @@
             file="Source/PluginProcessor.h"/>
       <FILE id="dspQnPr" name="QuanpressorDSP.h" compile="0" resource="0"
             file="Source/QuanpressorDSP.h"/>
+      <GROUP id="licQnPr" name="license">
+        <FILE id="licAQnPr" name="AudioRestrictor.h" compile="0" resource="0"
+              file="Source/license/AudioRestrictor.h"/>
+        <FILE id="licCQnPr" name="LicenseComponent.h" compile="0" resource="0"
+              file="Source/license/LicenseComponent.h"/>
+        <FILE id="licMQnPr" name="LicenseManager.cpp" compile="1" resource="0"
+              file="Source/license/LicenseManager.cpp"/>
+        <FILE id="licHQnPr" name="LicenseManager.h" compile="0" resource="0"
+              file="Source/license/LicenseManager.h"/>
+      </GROUP>
     </GROUP>
     <GROUP id="{4A11D255-50D1-EA2D-5225-5AE14D76DEDA}" name="Assets">
       <FILE id="Bi6oEC" name="OS_x2_ON.png" compile="0" resource="1" file="Assets/OS_x2_ON.png"/>
@@ -121,7 +131,7 @@
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_WEB_BROWSER="0" JUCE_USE_CURL="0"
                JUCE_VST3_CAN_REPLACE_VST2="0"/>
   <EXPORTFORMATS>
-    <XCODE_MAC targetFolder="Builds/MacOSX">
+    <XCODE_MAC targetFolder="Builds/MacOSX" extraLinkerFlags="../../libs/libsodium/libsodium_universal.a">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" targetName="Quanpressor"/>
         <CONFIGURATION isDebug="0" name="Release" targetName="Quanpressor"/>

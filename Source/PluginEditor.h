@@ -3,6 +3,7 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <array>
 #include "PluginProcessor.h"
+#include "license/LicenseComponent.h"
 
 class MeterPrivacyRenderer;
 
@@ -149,6 +150,7 @@ private:
     TooltipLookAndFeel tooltipLookAndFeel;
     juce::TooltipWindow tooltipWindow { this, 1700 };
     juce::Component content;
+    LicenseComponent licenseComponent;
     juce::ComboBox mode;
     std::array<ImageButton, 4> modeButtons {
         ImageButton { "FET" },

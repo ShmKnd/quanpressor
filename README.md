@@ -23,3 +23,16 @@ cmake --build build --config Release -j
 ```
 
 CMake fetches JUCE 8.0.6. Patina is vendored under `Patina/`.
+
+## Licensing
+
+Quanpressor verifies signed SoundRave license files with libsodium. An
+unlicensed installation runs as a 14-day trial; after the trial, periodic
+low-level noise is added until a valid `*.soundravelicense` file is loaded.
+
+libsodium is distributed under the ISC License. Copyright (c) 2013-2026 Frank
+Denis. Permission to use, copy, modify, and/or distribute the software for any
+purpose with or without fee is granted provided that the copyright and
+permission notices appear in all copies. The software is provided "AS IS"
+without warranty, and the author is not liable for damages arising from its
+use or performance.

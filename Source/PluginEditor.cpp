@@ -593,6 +593,7 @@ QuanpressorAudioProcessorEditor::QuanpressorAudioProcessorEditor(QuanpressorAudi
 
     grMatchingOverlay.matching = &proc.meters.grMatching;
     addAndMakeVisible(grMatchingOverlay);
+    addAndMakeVisible(licenseComponent);
 
     updateArchitectureControls();
     startTimerHz(30);
@@ -618,6 +619,8 @@ void QuanpressorAudioProcessorEditor::resized()
 {
     content.setBounds(0, 0, kBaseWidth, kBaseHeight);
     content.setTransform(juce::AffineTransform::scale(kUiScale));
+    licenseComponent.setBounds(getLocalBounds().removeFromBottom(36));
+    licenseComponent.toFront(false);
 
     const auto placeKnob = [](juce::Slider& slider, int x, int y)
     {
