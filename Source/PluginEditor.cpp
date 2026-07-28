@@ -73,6 +73,52 @@ namespace
         g.drawImage(image, destination, juce::RectanglePlacement::stretchToFit);
     }
 
+    juce::String libraryLicenseText()
+    {
+        juce::String text;
+        text += "Patina (MIT)\n\n";
+        text += R"LIC(MIT License
+
+Copyright (c) 2026 ShmKnd
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.)LIC";
+
+        text += "\n\nlibsodium (ISC)\n\n";
+        text += R"LIC(ISC License
+
+Copyright (c) 2013-2026
+Frank Denis <j at pureftpd dot org>
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.)LIC";
+        return text;
+    }
+
     juce::Image createMeterPrivacySnapshot(juce::Component& content,
                                            juce::Rectangle<int> overlayBounds,
                                            float captureScale)
@@ -515,6 +561,23 @@ void QuanpressorAudioProcessorEditor::ImageButton::paintButton(juce::Graphics& g
     g.setOpacity(1.0f);
 }
 
+void QuanpressorAudioProcessorEditor::InfoButton::paintButton(juce::Graphics& g,
+                                                               bool highlighted,
+                                                               bool down)
+{
+    auto area = getLocalBounds().toFloat().reduced(0.75f);
+    if (down)
+        area.translate(0.0f, 1.0f);
+
+    const auto gold = juce::Colour(0xffd9a928);
+    g.setColour(juce::Colour(0xff24272b).withAlpha(down ? 0.96f : 0.88f));
+    g.fillRoundedRectangle(area, 4.0f);
+    g.setColour(gold.withAlpha(highlighted ? 1.0f : 0.78f));
+    g.drawRoundedRectangle(area, 4.0f, highlighted ? 1.3f : 0.9f);
+    g.setFont(juce::Font(juce::FontOptions(11.0f, juce::Font::bold)));
+    g.drawText("INFO", getLocalBounds(), juce::Justification::centred);
+}
+
 void QuanpressorAudioProcessorEditor::addKnob(Knob& k, const char* id)
 {
     content.addAndMakeVisible(k);
@@ -591,6 +654,11 @@ QuanpressorAudioProcessorEditor::QuanpressorAudioProcessorEditor(QuanpressorAudi
     }
     oversampling2x.onClick = [this] { setOversamplingFromButton(2); };
     oversampling4x.onClick = [this] { setOversamplingFromButton(4); };
+
+    infoButton.setTooltip("Product information");
+    infoButton.setMouseCursor(juce::MouseCursor::PointingHandCursor);
+    infoButton.onClick = [this] { showInfoDialog(); };
+    content.addAndMakeVisible(infoButton);
 
     addKnob(input,     "input");
     addKnob(threshold, "threshold");
@@ -731,6 +799,11 @@ void QuanpressorAudioProcessorEditor::resized()
         getWidth(),
         licenseComponent.isVisible() ? kLicenseBarHeight : 0);
     licenseComponent.toFront(false);
+    if (infoPanel)
+    {
+        infoPanel->setBounds(getLocalBounds());
+        infoPanel->toFront(false);
+    }
 
     const auto placeKnob = [](juce::Slider& slider, int x, int y)
     {
@@ -751,6 +824,7 @@ void QuanpressorAudioProcessorEditor::resized()
     output.setBounds(1270, 676, 65, 65);
     oversampling2x.setBounds(1250, 777, 49, 22);
     oversampling4x.setBounds(1304, 777, 49, 22);
+    infoButton.setBounds(1250, 24, 78, 28);
 
     placeButton(modeButtons[0], 133, 109, 94, 44);
     placeButton(modeButtons[1], 237, 109, 94, 44);
@@ -911,6 +985,48 @@ void QuanpressorAudioProcessorEditor::setOversamplingFromButton(int factor)
     oversampling4x.setToggleState(shouldEnable && factor == 4, juce::dontSendNotification);
 }
 
+void QuanpressorAudioProcessorEditor::showInfoDialog()
+{
+    if (infoPanel)
+    {
+        closeInfoPanel();
+        return;
+    }
+
+    auto& licenseManager = LicenseManager::getInstance();
+    const auto licenseInfo = licenseManager.getInfo();
+
+    QuanpressorInfoOverlay::Info info;
+    info.product = licenseInfo.product.isNotEmpty()
+        ? licenseInfo.product
+        : juce::String(JucePlugin_Name);
+    info.version = juce::String(JucePlugin_VersionString);
+    info.licenseId = licenseInfo.licenseId;
+    info.user = licenseInfo.user;
+    info.status = licenseManager.getStatusString();
+
+    infoPanel = std::make_unique<QuanpressorInfoOverlay>(
+        info,
+        libraryLicenseText(),
+        [this] { closeInfoPanel(); });
+    addAndMakeVisible(infoPanel.get());
+    infoPanel->setBounds(getLocalBounds());
+    infoPanel->toFront(true);
+
+    for (auto& renderer : meterPrivacyRenderers)
+        if (renderer != nullptr)
+            renderer->setEnabled(false);
+}
+
+void QuanpressorAudioProcessorEditor::closeInfoPanel()
+{
+    if (!infoPanel)
+        return;
+
+    removeChildComponent(infoPanel.get());
+    infoPanel.reset();
+}
+
 void QuanpressorAudioProcessorEditor::updateLicenseLayout()
 {
     const int contentWidth = juce::roundToInt(kBaseWidth * kUiScale);
@@ -1000,7 +1116,7 @@ void QuanpressorAudioProcessorEditor::timerCallback()
                                   juce::dontSendNotification);
 
     const bool hideMeters = proc.apvts.getRawParameterValue("noMeter")->load() > 0.5f;
-    updateMeterPrivacy(hideMeters);
+    updateMeterPrivacy(hideMeters && infoPanel == nullptr);
     grMatchingOverlay.setVisible(!hideMeters);
     if (!hideMeters)
         grMatchingOverlay.toFront(false);
@@ -1012,6 +1128,8 @@ void QuanpressorAudioProcessorEditor::timerCallback()
         vuMeter.repaint();
     graph.repaint();
     historyGraph.repaint();
+    if (infoPanel)
+        infoPanel->toFront(false);
 }
 
 void QuanpressorAudioProcessorEditor::Meter::paint(juce::Graphics& g)

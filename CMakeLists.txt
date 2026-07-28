@@ -31,7 +31,7 @@ juce_add_plugin(Quanpressor
 
 target_sources(Quanpressor PRIVATE
     Source/PluginProcessor.cpp Source/PluginProcessor.h
-    Source/PluginEditor.cpp Source/PluginEditor.h
+    Source/PluginEditor.cpp Source/PluginEditor.h Source/QuanpressorInfoOverlay.h
     Source/MeterPrivacyRenderer.cpp Source/MeterPrivacyRenderer.h
     Source/QuanpressorDSP.h Source/Metering.h
     Source/license/LicenseManager.cpp Source/license/LicenseManager.h

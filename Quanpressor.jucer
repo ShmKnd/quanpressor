@@ -16,6 +16,8 @@
       <FILE id="edcQnPr" name="PluginEditor.cpp" compile="1" resource="0"
             file="Source/PluginEditor.cpp"/>
       <FILE id="edhQnPr" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
+      <FILE id="infQnPr" name="QuanpressorInfoOverlay.h" compile="0" resource="0"
+            file="Source/QuanpressorInfoOverlay.h"/>
       <FILE id="prcQnPr" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="prhQnPr" name="PluginProcessor.h" compile="0" resource="0"

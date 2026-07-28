@@ -3,6 +3,7 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <array>
 #include "PluginProcessor.h"
+#include "QuanpressorInfoOverlay.h"
 #include "license/LicenseComponent.h"
 
 class MeterPrivacyRenderer;
@@ -63,6 +64,13 @@ public:
         explicit ImageButton(const juce::String& name) : juce::Button(name) {}
         Kind kind = Kind::Fet;
         void paintButton(juce::Graphics&, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override;
+    };
+
+    struct InfoButton : juce::Button
+    {
+        InfoButton() : juce::Button("Info") {}
+        void paintButton(juce::Graphics&, bool shouldDrawButtonAsHighlighted,
+                         bool shouldDrawButtonAsDown) override;
     };
 
 private:
@@ -144,6 +152,8 @@ private:
     void setModeFromButton(int index);
     void setVuModeFromButton(int index);
     void setOversamplingFromButton(int factor);
+    void showInfoDialog();
+    void closeInfoPanel();
     void updateLicenseLayout();
     void updateMeterPrivacy(bool enabled, bool forceCapture = false);
     void addKnob(Knob&, const char*);
@@ -153,6 +163,8 @@ private:
     juce::TooltipWindow tooltipWindow { this, 1700 };
     juce::Component content;
     LicenseComponent licenseComponent;
+    InfoButton infoButton;
+    std::unique_ptr<QuanpressorInfoOverlay> infoPanel;
     juce::ComboBox mode;
     std::array<ImageButton, 4> modeButtons {
         ImageButton { "FET" },
