@@ -45,7 +45,13 @@ namespace BinaryData
     const int            Auto_Release_Button_ON_pngSize = 5597;
 
     extern const char*   BG_png;
-    const int            BG_pngSize = 2702687;
+    const int            BG_pngSize = 2698256;
+
+    extern const char*   FET_Attack_Scale_png;
+    const int            FET_Attack_Scale_pngSize = 4326;
+
+    extern const char*   Normal_Attack_Scales_png;
+    const int            Normal_Attack_Scales_pngSize = 3425;
 
     extern const char*   BlueKnob_png;
     const int            BlueKnob_pngSize = 4607;
@@ -147,7 +153,7 @@ namespace BinaryData
     const int            YellowKnob_pngSize = 7560;
 
     // Number of elements in the namedResourceList and originalFileNames arrays.
-    const int namedResourceListSize = 46;
+    const int namedResourceListSize = 48;
 
     // Points to the start of a list of resource names.
     extern const char* namedResourceList[];

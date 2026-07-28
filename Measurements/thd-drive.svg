@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="900" viewBox="0 0 1160 900">
+<style>text{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;fill:#252525}.title{font-size:24px;font-weight:700}.label{font-size:13px}.small{font-size:11px}.grid{stroke:#d8d8d8;stroke-width:1}.axis{stroke:#555;stroke-width:1.25}.panel{fill:#fff;stroke:#aaa}</style>
+<rect width="100%" height="100%" fill="#f7f7f5"/>
+<text x="40" y="38" class="title">Quanpressor THD vs Drive: baseline vs revised</text>
+<rect class="panel" x="85" y="85" width="485" height="300"/>
+<line class="grid" x1="85.00" y1="85" x2="85.00" y2="385"/>
+<text class="small" text-anchor="middle" x="85.00" y="402">0</text>
+<line class="grid" x1="165.83" y1="85" x2="165.83" y2="385"/>
+<text class="small" text-anchor="middle" x="165.83" y="402">3</text>
+<line class="grid" x1="246.67" y1="85" x2="246.67" y2="385"/>
+<text class="small" text-anchor="middle" x="246.67" y="402">6</text>
+<line class="grid" x1="327.50" y1="85" x2="327.50" y2="385"/>
+<text class="small" text-anchor="middle" x="327.50" y="402">9</text>
+<line class="grid" x1="408.33" y1="85" x2="408.33" y2="385"/>
+<text class="small" text-anchor="middle" x="408.33" y="402">12</text>
+<line class="grid" x1="489.17" y1="85" x2="489.17" y2="385"/>
+<text class="small" text-anchor="middle" x="489.17" y="402">15</text>
+<line class="grid" x1="570.00" y1="85" x2="570.00" y2="385"/>
+<text class="small" text-anchor="middle" x="570.00" y="402">18</text>
+<line class="grid" x1="85" y1="385.00" x2="570" y2="385.00"/>
+<text class="small" text-anchor="end" x="78" y="389.00">-120</text>
+<line class="grid" x1="85" y1="330.45" x2="570" y2="330.45"/>
+<text class="small" text-anchor="end" x="78" y="334.45">-100</text>
+<line class="grid" x1="85" y1="275.91" x2="570" y2="275.91"/>
+<text class="small" text-anchor="end" x="78" y="279.91">-80</text>
+<line class="grid" x1="85" y1="221.36" x2="570" y2="221.36"/>
+<text class="small" text-anchor="end" x="78" y="225.36">-60</text>
+<line class="grid" x1="85" y1="166.82" x2="570" y2="166.82"/>
+<text class="small" text-anchor="end" x="78" y="170.82">-40</text>
+<line class="grid" x1="85" y1="112.27" x2="570" y2="112.27"/>
+<text class="small" text-anchor="end" x="78" y="116.27">-20</text>
+<line class="axis" x1="85" y1="385" x2="570" y2="385"/>
+<line class="axis" x1="85" y1="85" x2="85" y2="385"/>
+<text class="label" text-anchor="middle" x="327.5" y="423">Drive (dB)</text>
+<text class="label" text-anchor="middle" transform="translate(43,235.0) rotate(-90)">THD relative to fundamental (dB)</text>
+<text class="label" x="93" y="105" font-weight="700">FET</text>
+<path d="M85.00,234.50 L165.83,217.58 L246.67,204.42 L327.50,192.86 L408.33,182.62 L489.17,172.67 L570.00,162.79" fill="none" stroke="#666" stroke-width="2.2" stroke-dasharray="7 5"/>
+<path d="M85.00,182.55 L165.83,171.50 L246.67,159.97 L327.50,148.50 L408.33,137.40 L489.17,126.90 L570.00,117.21" fill="none" stroke="#d55e00" stroke-width="2.2" stroke-dasharray=""/>
+<rect class="panel" x="650" y="85" width="485" height="300"/>
+<line class="grid" x1="650.00" y1="85" x2="650.00" y2="385"/>
+<text class="small" text-anchor="middle" x="650.00" y="402">0</text>
+<line class="grid" x1="730.83" y1="85" x2="730.83" y2="385"/>
+<text class="small" text-anchor="middle" x="730.83" y="402">3</text>
+<line class="grid" x1="811.67" y1="85" x2="811.67" y2="385"/>
+<text class="small" text-anchor="middle" x="811.67" y="402">6</text>
+<line class="grid" x1="892.50" y1="85" x2="892.50" y2="385"/>
+<text class="small" text-anchor="middle" x="892.50" y="402">9</text>
+<line class="grid" x1="973.33" y1="85" x2="973.33" y2="385"/>
+<text class="small" text-anchor="middle" x="973.33" y="402">12</text>
+<line class="grid" x1="1054.17" y1="85" x2="1054.17" y2="385"/>
+<text class="small" text-anchor="middle" x="1054.17" y="402">15</text>
+<line class="grid" x1="1135.00" y1="85" x2="1135.00" y2="385"/>
+<text class="small" text-anchor="middle" x="1135.00" y="402">18</text>
+<line class="grid" x1="650" y1="385.00" x2="1135" y2="385.00"/>
+<text class="small" text-anchor="end" x="643" y="389.00">-120</text>
+<line class="grid" x1="650" y1="330.45" x2="1135" y2="330.45"/>
+<text class="small" text-anchor="end" x="643" y="334.45">-100</text>
+<line class="grid" x1="650" y1="275.91" x2="1135" y2="275.91"/>
+<text class="small" text-anchor="end" x="643" y="279.91">-80</text>
+<line class="grid" x1="650" y1="221.36" x2="1135" y2="221.36"/>
+<text class="small" text-anchor="end" x="643" y="225.36">-60</text>
+<line class="grid" x1="650" y1="166.82" x2="1135" y2="166.82"/>
+<text class="small" text-anchor="end" x="643" y="170.82">-40</text>
+<line class="grid" x1="650" y1="112.27" x2="1135" y2="112.27"/>
+<text class="small" text-anchor="end" x="643" y="116.27">-20</text>
+<line class="axis" x1="650" y1="385" x2="1135" y2="385"/>
+<line class="axis" x1="650" y1="85" x2="650" y2="385"/>
+<text class="label" text-anchor="middle" x="892.5" y="423">Drive (dB)</text>
+<text class="label" text-anchor="middle" transform="translate(608,235.0) rotate(-90)">THD relative to fundamental (dB)</text>
+<text class="label" x="658" y="105" font-weight="700">OPTO</text>
+<path d="M650.00,382.33 L730.83,263.34 L811.67,247.17 L892.50,237.24 L973.33,230.60 L1054.17,225.77 L1135.00,219.66" fill="none" stroke="#666" stroke-width="2.2" stroke-dasharray="7 5"/>
+<path d="M650.00,227.75 L730.83,224.62 L811.67,220.57 L892.50,216.40 L973.33,213.18 L1054.17,209.60 L1135.00,177.53" fill="none" stroke="#cc79a7" stroke-width="2.2" stroke-dasharray=""/>
+<rect class="panel" x="85" y="480" width="485" height="300"/>
+<line class="grid" x1="85.00" y1="480" x2="85.00" y2="780"/>
+<text class="small" text-anchor="middle" x="85.00" y="797">0</text>
+<line class="grid" x1="165.83" y1="480" x2="165.83" y2="780"/>
+<text class="small" text-anchor="middle" x="165.83" y="797">3</text>
+<line class="grid" x1="246.67" y1="480" x2="246.67" y2="780"/>
+<text class="small" text-anchor="middle" x="246.67" y="797">6</text>
+<line class="grid" x1="327.50" y1="480" x2="327.50" y2="780"/>
+<text class="small" text-anchor="middle" x="327.50" y="797">9</text>
+<line class="grid" x1="408.33" y1="480" x2="408.33" y2="780"/>
+<text class="small" text-anchor="middle" x="408.33" y="797">12</text>
+<line class="grid" x1="489.17" y1="480" x2="489.17" y2="780"/>
+<text class="small" text-anchor="middle" x="489.17" y="797">15</text>
+<line class="grid" x1="570.00" y1="480" x2="570.00" y2="780"/>
+<text class="small" text-anchor="middle" x="570.00" y="797">18</text>
+<line class="grid" x1="85" y1="780.00" x2="570" y2="780.00"/>
+<text class="small" text-anchor="end" x="78" y="784.00">-120</text>
+<line class="grid" x1="85" y1="725.45" x2="570" y2="725.45"/>
+<text class="small" text-anchor="end" x="78" y="729.45">-100</text>
+<line class="grid" x1="85" y1="670.91" x2="570" y2="670.91"/>
+<text class="small" text-anchor="end" x="78" y="674.91">-80</text>
+<line class="grid" x1="85" y1="616.36" x2="570" y2="616.36"/>
+<text class="small" text-anchor="end" x="78" y="620.36">-60</text>
+<line class="grid" x1="85" y1="561.82" x2="570" y2="561.82"/>
+<text class="small" text-anchor="end" x="78" y="565.82">-40</text>
+<line class="grid" x1="85" y1="507.27" x2="570" y2="507.27"/>
+<text class="small" text-anchor="end" x="78" y="511.27">-20</text>
+<line class="axis" x1="85" y1="780" x2="570" y2="780"/>
+<line class="axis" x1="85" y1="480" x2="85" y2="780"/>
+<text class="label" text-anchor="middle" x="327.5" y="818">Drive (dB)</text>
+<text class="label" text-anchor="middle" transform="translate(43,630.0) rotate(-90)">THD relative to fundamental (dB)</text>
+<text class="label" x="93" y="500" font-weight="700">VCA</text>
+<path d="M85.00,736.86 L165.83,674.25 L246.67,658.30 L327.50,649.04 L408.33,642.83 L489.17,637.25 L570.00,631.24" fill="none" stroke="#666" stroke-width="2.2" stroke-dasharray="7 5"/>
+<path d="M85.00,657.44 L165.83,656.61 L246.67,654.35 L327.50,650.83 L408.33,646.58 L489.17,642.42 L570.00,637.12" fill="none" stroke="#0072b2" stroke-width="2.2" stroke-dasharray=""/>
+<rect class="panel" x="650" y="480" width="485" height="300"/>
+<line class="grid" x1="650.00" y1="480" x2="650.00" y2="780"/>
+<text class="small" text-anchor="middle" x="650.00" y="797">0</text>
+<line class="grid" x1="730.83" y1="480" x2="730.83" y2="780"/>
+<text class="small" text-anchor="middle" x="730.83" y="797">3</text>
+<line class="grid" x1="811.67" y1="480" x2="811.67" y2="780"/>
+<text class="small" text-anchor="middle" x="811.67" y="797">6</text>
+<line class="grid" x1="892.50" y1="480" x2="892.50" y2="780"/>
+<text class="small" text-anchor="middle" x="892.50" y="797">9</text>
+<line class="grid" x1="973.33" y1="480" x2="973.33" y2="780"/>
+<text class="small" text-anchor="middle" x="973.33" y="797">12</text>
+<line class="grid" x1="1054.17" y1="480" x2="1054.17" y2="780"/>
+<text class="small" text-anchor="middle" x="1054.17" y="797">15</text>
+<line class="grid" x1="1135.00" y1="480" x2="1135.00" y2="780"/>
+<text class="small" text-anchor="middle" x="1135.00" y="797">18</text>
+<line class="grid" x1="650" y1="780.00" x2="1135" y2="780.00"/>
+<text class="small" text-anchor="end" x="643" y="784.00">-120</text>
+<line class="grid" x1="650" y1="725.45" x2="1135" y2="725.45"/>
+<text class="small" text-anchor="end" x="643" y="729.45">-100</text>
+<line class="grid" x1="650" y1="670.91" x2="1135" y2="670.91"/>
+<text class="small" text-anchor="end" x="643" y="674.91">-80</text>
+<line class="grid" x1="650" y1="616.36" x2="1135" y2="616.36"/>
+<text class="small" text-anchor="end" x="643" y="620.36">-60</text>
+<line class="grid" x1="650" y1="561.82" x2="1135" y2="561.82"/>
+<text class="small" text-anchor="end" x="643" y="565.82">-40</text>
+<line class="grid" x1="650" y1="507.27" x2="1135" y2="507.27"/>
+<text class="small" text-anchor="end" x="643" y="511.27">-20</text>
+<line class="axis" x1="650" y1="780" x2="1135" y2="780"/>
+<line class="axis" x1="650" y1="480" x2="650" y2="780"/>
+<text class="label" text-anchor="middle" x="892.5" y="818">Drive (dB)</text>
+<text class="label" text-anchor="middle" transform="translate(608,630.0) rotate(-90)">THD relative to fundamental (dB)</text>
+<text class="label" x="658" y="500" font-weight="700">VARIMU</text>
+<path d="M650.00,723.41 L730.83,639.44 L811.67,623.36 L892.50,614.09 L973.33,544.06 L1054.17,537.52 L1135.00,533.63" fill="none" stroke="#666" stroke-width="2.2" stroke-dasharray="7 5"/>
+<path d="M650.00,648.43 L730.83,633.19 L811.67,618.90 L892.50,604.84 L973.33,558.14 L1054.17,535.08 L1135.00,527.62" fill="none" stroke="#009e73" stroke-width="2.2" stroke-dasharray=""/>
+</svg>

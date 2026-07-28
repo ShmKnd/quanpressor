@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="900" viewBox="0 0 1160 900">
+<style>text{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;fill:#252525}.title{font-size:24px;font-weight:700}.label{font-size:13px}.small{font-size:11px}.grid{stroke:#d8d8d8;stroke-width:1}.axis{stroke:#555;stroke-width:1.25}.panel{fill:#fff;stroke:#aaa}</style>
+<rect width="100%" height="100%" fill="#f7f7f5"/>
+<text x="40" y="38" class="title">Quanpressor static curves: baseline vs revised</text>
+<rect class="panel" x="85" y="85" width="485" height="300"/>
+<line class="grid" x1="85.00" y1="85" x2="85.00" y2="385"/>
+<text class="small" text-anchor="middle" x="85.00" y="402">-60</text>
+<line class="grid" x1="182.00" y1="85" x2="182.00" y2="385"/>
+<text class="small" text-anchor="middle" x="182.00" y="402">-48</text>
+<line class="grid" x1="279.00" y1="85" x2="279.00" y2="385"/>
+<text class="small" text-anchor="middle" x="279.00" y="402">-36</text>
+<line class="grid" x1="376.00" y1="85" x2="376.00" y2="385"/>
+<text class="small" text-anchor="middle" x="376.00" y="402">-24</text>
+<line class="grid" x1="473.00" y1="85" x2="473.00" y2="385"/>
+<text class="small" text-anchor="middle" x="473.00" y="402">-12</text>
+<line class="grid" x1="570.00" y1="85" x2="570.00" y2="385"/>
+<text class="small" text-anchor="middle" x="570.00" y="402">0</text>
+<line class="grid" x1="85" y1="385.00" x2="570" y2="385.00"/>
+<text class="small" text-anchor="end" x="78" y="389.00">-60</text>
+<line class="grid" x1="85" y1="325.00" x2="570" y2="325.00"/>
+<text class="small" text-anchor="end" x="78" y="329.00">-48</text>
+<line class="grid" x1="85" y1="265.00" x2="570" y2="265.00"/>
+<text class="small" text-anchor="end" x="78" y="269.00">-36</text>
+<line class="grid" x1="85" y1="205.00" x2="570" y2="205.00"/>
+<text class="small" text-anchor="end" x="78" y="209.00">-24</text>
+<line class="grid" x1="85" y1="145.00" x2="570" y2="145.00"/>
+<text class="small" text-anchor="end" x="78" y="149.00">-12</text>
+<line class="grid" x1="85" y1="85.00" x2="570" y2="85.00"/>
+<text class="small" text-anchor="end" x="78" y="89.00">0</text>
+<line class="axis" x1="85" y1="385" x2="570" y2="385"/>
+<line class="axis" x1="85" y1="85" x2="85" y2="385"/>
+<text class="label" text-anchor="middle" x="327.5" y="423">Input peak (dBFS)</text>
+<text class="label" text-anchor="middle" transform="translate(43,235.0) rotate(-90)">Output peak (dBFS)</text>
+<text class="label" x="93" y="105" font-weight="700">FET</text>
+<path d="M85.00,385.00 L570.00,85.00" fill="none" stroke="#aaa" stroke-dasharray="3 4"/>
+<path d="M85.00,385.00 L109.25,370.00 L133.50,355.00 L157.75,340.00 L182.00,325.00 L206.25,310.00 L230.50,295.00 L254.75,280.00 L279.00,265.00 L303.25,250.00 L327.50,235.00 L351.75,220.00 L376.00,207.74 L400.25,201.09 L424.50,197.32 L448.75,193.54 L473.00,189.77 L497.25,185.99 L521.50,182.22 L545.75,178.44 L570.00,174.67" fill="none" stroke="#666" stroke-width="2.2" stroke-dasharray="7 5"/>
+<path d="M85.00,385.00 L109.25,370.00 L133.50,355.00 L157.75,340.00 L182.00,325.00 L206.25,310.00 L230.50,295.00 L254.75,280.00 L279.00,265.00 L303.25,250.01 L327.50,235.01 L351.75,220.17 L376.00,210.48 L400.25,203.64 L424.50,198.03 L448.75,193.22 L473.00,189.07 L497.25,185.61 L521.50,182.90 L545.75,181.39 L570.00,181.81" fill="none" stroke="#d55e00" stroke-width="2.2" stroke-dasharray=""/>
+<rect class="panel" x="650" y="85" width="485" height="300"/>
+<line class="grid" x1="650.00" y1="85" x2="650.00" y2="385"/>
+<text class="small" text-anchor="middle" x="650.00" y="402">-60</text>
+<line class="grid" x1="747.00" y1="85" x2="747.00" y2="385"/>
+<text class="small" text-anchor="middle" x="747.00" y="402">-48</text>
+<line class="grid" x1="844.00" y1="85" x2="844.00" y2="385"/>
+<text class="small" text-anchor="middle" x="844.00" y="402">-36</text>
+<line class="grid" x1="941.00" y1="85" x2="941.00" y2="385"/>
+<text class="small" text-anchor="middle" x="941.00" y="402">-24</text>
+<line class="grid" x1="1038.00" y1="85" x2="1038.00" y2="385"/>
+<text class="small" text-anchor="middle" x="1038.00" y="402">-12</text>
+<line class="grid" x1="1135.00" y1="85" x2="1135.00" y2="385"/>
+<text class="small" text-anchor="middle" x="1135.00" y="402">0</text>
+<line class="grid" x1="650" y1="385.00" x2="1135" y2="385.00"/>
+<text class="small" text-anchor="end" x="643" y="389.00">-60</text>
+<line class="grid" x1="650" y1="325.00" x2="1135" y2="325.00"/>
+<text class="small" text-anchor="end" x="643" y="329.00">-48</text>
+<line class="grid" x1="650" y1="265.00" x2="1135" y2="265.00"/>
+<text class="small" text-anchor="end" x="643" y="269.00">-36</text>
+<line class="grid" x1="650" y1="205.00" x2="1135" y2="205.00"/>
+<text class="small" text-anchor="end" x="643" y="209.00">-24</text>
+<line class="grid" x1="650" y1="145.00" x2="1135" y2="145.00"/>
+<text class="small" text-anchor="end" x="643" y="149.00">-12</text>
+<line class="grid" x1="650" y1="85.00" x2="1135" y2="85.00"/>
+<text class="small" text-anchor="end" x="643" y="89.00">0</text>
+<line class="axis" x1="650" y1="385" x2="1135" y2="385"/>
+<line class="axis" x1="650" y1="85" x2="650" y2="385"/>
+<text class="label" text-anchor="middle" x="892.5" y="423">Input peak (dBFS)</text>
+<text class="label" text-anchor="middle" transform="translate(608,235.0) rotate(-90)">Output peak (dBFS)</text>
+<text class="label" x="658" y="105" font-weight="700">OPTO</text>
+<path d="M650.00,385.00 L1135.00,85.00" fill="none" stroke="#aaa" stroke-dasharray="3 4"/>
+<path d="M650.00,385.00 L674.25,370.00 L698.50,355.00 L722.75,340.00 L747.00,325.00 L771.25,310.00 L795.50,295.00 L819.75,280.00 L844.00,265.00 L868.25,250.00 L892.50,235.00 L916.75,220.00 L941.00,205.00 L965.25,199.15 L989.50,196.40 L1013.75,194.94 L1038.00,193.97 L1062.25,193.38 L1086.50,192.96 L1110.75,190.46 L1135.00,175.46" fill="none" stroke="#666" stroke-width="2.2" stroke-dasharray="7 5"/>
+<path d="M650.00,385.00 L674.25,370.00 L698.50,355.00 L722.75,340.00 L747.00,325.00 L771.25,310.00 L795.50,295.00 L819.75,280.00 L844.00,265.00 L868.25,250.00 L892.50,235.00 L916.75,220.00 L941.00,207.06 L965.25,198.38 L989.50,192.99 L1013.75,187.71 L1038.00,182.22 L1062.25,176.54 L1086.50,170.66 L1110.75,164.59 L1135.00,158.31" fill="none" stroke="#cc79a7" stroke-width="2.2" stroke-dasharray=""/>
+<rect class="panel" x="85" y="480" width="485" height="300"/>
+<line class="grid" x1="85.00" y1="480" x2="85.00" y2="780"/>
+<text class="small" text-anchor="middle" x="85.00" y="797">-60</text>
+<line class="grid" x1="182.00" y1="480" x2="182.00" y2="780"/>
+<text class="small" text-anchor="middle" x="182.00" y="797">-48</text>
+<line class="grid" x1="279.00" y1="480" x2="279.00" y2="780"/>
+<text class="small" text-anchor="middle" x="279.00" y="797">-36</text>
+<line class="grid" x1="376.00" y1="480" x2="376.00" y2="780"/>
+<text class="small" text-anchor="middle" x="376.00" y="797">-24</text>
+<line class="grid" x1="473.00" y1="480" x2="473.00" y2="780"/>
+<text class="small" text-anchor="middle" x="473.00" y="797">-12</text>
+<line class="grid" x1="570.00" y1="480" x2="570.00" y2="780"/>
+<text class="small" text-anchor="middle" x="570.00" y="797">0</text>
+<line class="grid" x1="85" y1="780.00" x2="570" y2="780.00"/>
+<text class="small" text-anchor="end" x="78" y="784.00">-60</text>
+<line class="grid" x1="85" y1="720.00" x2="570" y2="720.00"/>
+<text class="small" text-anchor="end" x="78" y="724.00">-48</text>
+<line class="grid" x1="85" y1="660.00" x2="570" y2="660.00"/>
+<text class="small" text-anchor="end" x="78" y="664.00">-36</text>
+<line class="grid" x1="85" y1="600.00" x2="570" y2="600.00"/>
+<text class="small" text-anchor="end" x="78" y="604.00">-24</text>
+<line class="grid" x1="85" y1="540.00" x2="570" y2="540.00"/>
+<text class="small" text-anchor="end" x="78" y="544.00">-12</text>
+<line class="grid" x1="85" y1="480.00" x2="570" y2="480.00"/>
+<text class="small" text-anchor="end" x="78" y="484.00">0</text>
+<line class="axis" x1="85" y1="780" x2="570" y2="780"/>
+<line class="axis" x1="85" y1="480" x2="85" y2="780"/>
+<text class="label" text-anchor="middle" x="327.5" y="818">Input peak (dBFS)</text>
+<text class="label" text-anchor="middle" transform="translate(43,630.0) rotate(-90)">Output peak (dBFS)</text>
+<text class="label" x="93" y="500" font-weight="700">VCA</text>
+<path d="M85.00,780.00 L570.00,480.00" fill="none" stroke="#aaa" stroke-dasharray="3 4"/>
+<path d="M85.00,779.99 L109.25,764.99 L133.50,749.99 L157.75,734.99 L182.00,719.99 L206.25,704.99 L230.50,689.99 L254.75,674.99 L279.00,659.99 L303.25,644.99 L327.50,629.99 L351.75,614.99 L376.00,601.84 L400.25,594.20 L424.50,590.30 L448.75,586.45 L473.00,582.51 L497.25,578.39 L521.50,573.92 L545.75,568.79 L570.00,562.53" fill="none" stroke="#666" stroke-width="2.2" stroke-dasharray="7 5"/>
+<path d="M85.00,779.99 L109.25,764.99 L133.50,749.99 L157.75,734.99 L182.00,719.99 L206.25,704.99 L230.50,689.99 L254.75,674.99 L279.00,659.99 L303.25,644.99 L327.50,629.99 L351.75,614.99 L376.00,601.63 L400.25,593.73 L424.50,589.82 L448.75,586.07 L473.00,582.32 L497.25,578.57 L521.50,574.82 L545.75,571.07 L570.00,567.32" fill="none" stroke="#0072b2" stroke-width="2.2" stroke-dasharray=""/>
+<rect class="panel" x="650" y="480" width="485" height="300"/>
+<line class="grid" x1="650.00" y1="480" x2="650.00" y2="780"/>
+<text class="small" text-anchor="middle" x="650.00" y="797">-60</text>
+<line class="grid" x1="747.00" y1="480" x2="747.00" y2="780"/>
+<text class="small" text-anchor="middle" x="747.00" y="797">-48</text>
+<line class="grid" x1="844.00" y1="480" x2="844.00" y2="780"/>
+<text class="small" text-anchor="middle" x="844.00" y="797">-36</text>
+<line class="grid" x1="941.00" y1="480" x2="941.00" y2="780"/>
+<text class="small" text-anchor="middle" x="941.00" y="797">-24</text>
+<line class="grid" x1="1038.00" y1="480" x2="1038.00" y2="780"/>
+<text class="small" text-anchor="middle" x="1038.00" y="797">-12</text>
+<line class="grid" x1="1135.00" y1="480" x2="1135.00" y2="780"/>
+<text class="small" text-anchor="middle" x="1135.00" y="797">0</text>
+<line class="grid" x1="650" y1="780.00" x2="1135" y2="780.00"/>
+<text class="small" text-anchor="end" x="643" y="784.00">-60</text>
+<line class="grid" x1="650" y1="720.00" x2="1135" y2="720.00"/>
+<text class="small" text-anchor="end" x="643" y="724.00">-48</text>
+<line class="grid" x1="650" y1="660.00" x2="1135" y2="660.00"/>
+<text class="small" text-anchor="end" x="643" y="664.00">-36</text>
+<line class="grid" x1="650" y1="600.00" x2="1135" y2="600.00"/>
+<text class="small" text-anchor="end" x="643" y="604.00">-24</text>
+<line class="grid" x1="650" y1="540.00" x2="1135" y2="540.00"/>
+<text class="small" text-anchor="end" x="643" y="544.00">-12</text>
+<line class="grid" x1="650" y1="480.00" x2="1135" y2="480.00"/>
+<text class="small" text-anchor="end" x="643" y="484.00">0</text>
+<line class="axis" x1="650" y1="780" x2="1135" y2="780"/>
+<line class="axis" x1="650" y1="480" x2="650" y2="780"/>
+<text class="label" text-anchor="middle" x="892.5" y="818">Input peak (dBFS)</text>
+<text class="label" text-anchor="middle" transform="translate(608,630.0) rotate(-90)">Output peak (dBFS)</text>
+<text class="label" x="658" y="500" font-weight="700">VARIMU</text>
+<path d="M650.00,780.00 L1135.00,480.00" fill="none" stroke="#aaa" stroke-dasharray="3 4"/>
+<path d="M650.00,780.00 L674.25,765.00 L698.50,750.00 L722.75,735.00 L747.00,720.00 L771.25,705.00 L795.50,690.00 L819.75,675.00 L844.00,660.00 L868.25,645.00 L892.50,630.00 L916.75,615.00 L941.00,600.00 L965.25,586.40 L989.50,577.32 L1013.75,572.81 L1038.00,569.91 L1062.25,567.83 L1086.50,566.19 L1110.75,564.76 L1135.00,563.44" fill="none" stroke="#666" stroke-width="2.2" stroke-dasharray="7 5"/>
+<path d="M650.00,780.00 L674.25,765.00 L698.50,750.00 L722.75,735.00 L747.00,720.00 L771.25,705.00 L795.50,690.00 L819.75,675.00 L844.00,660.00 L868.25,645.00 L892.50,630.00 L916.75,615.00 L941.00,602.47 L965.25,592.83 L989.50,584.68 L1013.75,577.06 L1038.00,569.43 L1062.25,561.80 L1086.50,554.16 L1110.75,546.53 L1135.00,539.13" fill="none" stroke="#009e73" stroke-width="2.2" stroke-dasharray=""/>
+<line x1="810" y1="45" x2="850" y2="45" stroke="#666" stroke-width="2.2" stroke-dasharray="7 5"/>
+<text class="label" x="858" y="50">baseline 6396dcb</text>
+<line x1="970" y1="45" x2="1010" y2="45" stroke="#0072b2" stroke-width="2.2"/>
+<text class="label" x="1018" y="50">revised</text>
+</svg>

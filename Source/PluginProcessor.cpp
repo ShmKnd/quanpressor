@@ -49,17 +49,35 @@ namespace
 
     float optoThresholdForTargetGr(float inputPeakDb, float targetGrDb, float ratio)
     {
-        const float inputLinear = juce::Decibels::decibelsToGain(inputPeakDb);
-        const float targetGain = juce::Decibels::decibelsToGain(juce::jmin(0.0f, targetGrDb));
-        const float compressionFactor = juce::jmap(juce::jlimit(1.5f, 20.0f, ratio),
-                                                   1.5f, 20.0f, 5.0f, 20.0f);
-        const float sensitivity = 0.5f + juce::jlimit(0.0f, 1.0f, 0.24f + ratio / 28.0f) * 4.0f;
-        const float requiredAttenuation = juce::jlimit(0.0f, 1.0f,
-            (1.0f / juce::jmax(0.001f, targetGain) - 1.0f) / compressionFactor);
-        const float thresholdLinear = juce::jmax(juce::Decibels::decibelsToGain(-48.0f),
-            inputLinear - requiredAttenuation / sensitivity);
-        return juce::jlimit(-48.0f, 0.0f,
-            juce::Decibels::gainToDecibels(thresholdLinear, -48.0f));
+        const float opticalRatio = juce::jmap(
+            juce::jlimit(1.5f, 20.0f, ratio),
+            1.5f, 20.0f, 2.2f, 10.0f);
+        const float targetDepth = juce::jlimit(0.0f, 48.0f, -targetGrDb);
+        constexpr float kneeDb = 7.0f;
+        float low = -48.0f;
+        float high = 0.0f;
+        for (int iteration = 0; iteration < 24; ++iteration)
+        {
+            const float threshold = 0.5f * (low + high);
+            const float overDb = inputPeakDb - threshold;
+            float effectiveOver = 0.0f;
+            if (overDb > -0.5f * kneeDb)
+            {
+                if (overDb >= 0.5f * kneeDb)
+                    effectiveOver = overDb;
+                else
+                {
+                    const float position = overDb + 0.5f * kneeDb;
+                    effectiveOver = position * position / (2.0f * kneeDb);
+                }
+            }
+            const float reduction = effectiveOver * (1.0f - 1.0f / opticalRatio);
+            if (reduction > targetDepth)
+                low = threshold;
+            else
+                high = threshold;
+        }
+        return juce::jlimit(-48.0f, 0.0f, 0.5f * (low + high));
     }
 }
 

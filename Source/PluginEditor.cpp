@@ -9,11 +9,18 @@ namespace
     constexpr int kBaseWidth = 1360;
     constexpr int kBaseHeight = 820;
     constexpr float kUiScale = 0.75f;
+    constexpr int kLicenseBarHeight = 36;
+    constexpr float kArtworkRasterScale = 1.5f;
+    constexpr float kAttackMinimumLabelCentreX = 143.7f;
+    constexpr float kFetAttackMinimumLabelSourceX = 39.6f;
+    constexpr float kNormalAttackMinimumLabelSourceX = 27.3f;
+    constexpr float kAttackScaleTop = 420.0f;
 
     const std::array<juce::Rectangle<int>, 2> kMeterPrivacyBaseBounds {{
         { 545, 75, 444, 132 },
         { 545, 245, 444, 543 }
     }};
+    const juce::Rectangle<int> kAttackScaleBaseBounds { 117, 420, 121, 88 };
 
     juce::Rectangle<int> scaledUiRectangle(juce::Rectangle<int> area)
     {
@@ -33,6 +40,37 @@ namespace
     {
         static const auto img = imageFromBinary(BinaryData::BG_png, BinaryData::BG_pngSize);
         return img;
+    }
+
+    const juce::Image& attackScaleImage(bool fetMode)
+    {
+        static const auto fet = imageFromBinary(
+            BinaryData::FET_Attack_Scale_png,
+            BinaryData::FET_Attack_Scale_pngSize);
+        static const auto normal = imageFromBinary(
+            BinaryData::Normal_Attack_Scales_png,
+            BinaryData::Normal_Attack_Scales_pngSize);
+        return fetMode ? fet : normal;
+    }
+
+    void drawAttackScale(juce::Graphics& g, bool fetMode)
+    {
+        const auto& image = attackScaleImage(fetMode);
+        const float width = image.getWidth() / kArtworkRasterScale;
+        const float height = image.getHeight() / kArtworkRasterScale;
+        const float minimumLabelSourceX = fetMode
+            ? kFetAttackMinimumLabelSourceX
+            : kNormalAttackMinimumLabelSourceX;
+        const juce::Rectangle<float> destination {
+            kAttackMinimumLabelCentreX
+                - minimumLabelSourceX / kArtworkRasterScale,
+            kAttackScaleTop,
+            width,
+            height
+        };
+
+        g.setImageResamplingQuality(juce::Graphics::highResamplingQuality);
+        g.drawImage(image, destination, juce::RectanglePlacement::stretchToFit);
     }
 
     juce::Image createMeterPrivacySnapshot(juce::Component& content,
@@ -226,29 +264,86 @@ namespace
         return juce::degreesToRadians(timeConstantScale ? 50.0f : 135.0f);
     }
 
-    float variableMuTransferOutput(float in, float threshold)
+    float variableMuTransferOutput(float in, float threshold, float ratio, float knee)
     {
-        const float overDb = juce::jmax(0.0f, in - threshold);
-        return in - QuanpressorDSP::variableMuGainReductionDb(overDb);
+        const float loopStrength = juce::jmap(
+            juce::jlimit(1.5f, 20.0f, ratio),
+            1.5f, 20.0f, 0.65f, 1.35f);
+        const float kneeDb = juce::jlimit(2.0f, 12.0f, knee);
+        float low = in - 60.0f;
+        float high = in;
+        for (int iteration = 0; iteration < 24; ++iteration)
+        {
+            const float output = 0.5f * (low + high);
+            const float overDb = output - threshold;
+            float effectiveOver = 0.0f;
+            if (overDb > -0.5f * kneeDb)
+            {
+                if (overDb >= 0.5f * kneeDb)
+                    effectiveOver = overDb;
+                else
+                {
+                    const float position = overDb + 0.5f * kneeDb;
+                    effectiveOver = position * position / (2.0f * kneeDb);
+                }
+            }
+            const float controlVoltage = juce::jlimit(
+                0.0f, 2.2f, effectiveOver * loopStrength / 20.0f);
+            const float gainDb = juce::Decibels::gainToDecibels(
+                static_cast<float>(TubeTriode::variableMuGain(
+                    controlVoltage, TubeTriode::Tube6386())),
+                -60.0f);
+            const float computed = in + gainDb;
+            if (computed > output)
+                low = output;
+            else
+                high = output;
+        }
+        return 0.5f * (low + high);
     }
 
     float transferOutput(float in, float threshold, float ratio, float knee, int mode)
     {
         if (mode == QuanpressorDSP::VARIMU)
-            return variableMuTransferOutput(in, threshold);
+            return variableMuTransferOutput(in, threshold, ratio, knee);
 
         if (mode == QuanpressorDSP::FET)
         {
-            constexpr float fetKneeDb = 6.0f;
-            const float overDb = in - threshold;
-            if (overDb <= 0.0f)
-                return in;
-
-            const float slope = 1.0f - 1.0f / ratio;
-            const float reductionDb = overDb < fetKneeDb
-                ? slope * overDb * overDb / (2.0f * fetKneeDb)
-                : slope * (overDb - fetKneeDb * 0.5f);
-            return in - reductionDb;
+            constexpr std::array<float, 4> feedback {
+                3.0f, 7.0f, 11.0f, 19.0f
+            };
+            constexpr std::array<float, 4> kneeWidths {
+                7.0f, 5.5f, 4.0f, 2.5f
+            };
+            const size_t ratioIndex = static_cast<size_t>(
+                QuanpressorDSP::fetRatioIndex(ratio));
+            float low = in - 60.0f;
+            float high = in;
+            for (int iteration = 0; iteration < 24; ++iteration)
+            {
+                const float output = 0.5f * (low + high);
+                const float kneeWidth = kneeWidths[ratioIndex];
+                const float overDb = output - threshold;
+                float effectiveOver = 0.0f;
+                if (overDb > -0.5f * kneeWidth)
+                {
+                    if (overDb >= 0.5f * kneeWidth)
+                        effectiveOver = overDb;
+                    else
+                    {
+                        const float position = overDb + 0.5f * kneeWidth;
+                        effectiveOver = position * position
+                            / (2.0f * kneeWidth);
+                    }
+                }
+                const float computed = in
+                    - effectiveOver * feedback[ratioIndex];
+                if (computed > output)
+                    low = output;
+                else
+                    high = output;
+            }
+            return 0.5f * (low + high);
         }
 
         const float lower = threshold - knee * 0.5f;
@@ -425,15 +520,25 @@ void QuanpressorAudioProcessorEditor::addKnob(Knob& k, const char* id)
     content.addAndMakeVisible(k);
     k.setLookAndFeel(&tooltipLookAndFeel);
     k.parameterId = id;
+    k.setComponentID(id);
     k.setPopupDisplayEnabled(true, false, nullptr);
+    sa.push_back(std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+        proc.apvts, id, k));
+
     if (auto* parameter = proc.apvts.getParameter(id))
     {
-        k.textFromValueFunction = [parameter](double value)
+        k.textFromValueFunction = [parameter, knob = &k](double value)
         {
+            if (knob->useFetAttackDisplay)
+            {
+                const float milliseconds = QuanpressorDSP::fetAttackMilliseconds(
+                    static_cast<float>(value));
+                return juce::String(milliseconds, 2) + " ms";
+            }
+
             return parameter->getText(parameter->convertTo0to1(static_cast<float>(value)), 64);
         };
     }
-    sa.push_back(std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(proc.apvts, id, k));
 }
 
 QuanpressorAudioProcessorEditor::QuanpressorAudioProcessorEditor(QuanpressorAudioProcessor& p)
@@ -441,8 +546,7 @@ QuanpressorAudioProcessorEditor::QuanpressorAudioProcessorEditor(QuanpressorAudi
 {
     addAndMakeVisible(content);
     tooltipWindow.setLookAndFeel(&tooltipLookAndFeel);
-    setSize(juce::roundToInt(kBaseWidth * kUiScale),
-            juce::roundToInt(kBaseHeight * kUiScale));
+    updateLicenseLayout();
 
     mode.addItemList({ "FET", "OPTO", "VCA", "VARI-MU" }, 1);
     modeButtons[0].kind = ImageButton::Kind::Fet;
@@ -593,7 +697,7 @@ QuanpressorAudioProcessorEditor::QuanpressorAudioProcessorEditor(QuanpressorAudi
 
     grMatchingOverlay.matching = &proc.meters.grMatching;
     addAndMakeVisible(grMatchingOverlay);
-    addAndMakeVisible(licenseComponent);
+    addChildComponent(licenseComponent);
 
     updateArchitectureControls();
     startTimerHz(30);
@@ -613,13 +717,19 @@ void QuanpressorAudioProcessorEditor::paint(juce::Graphics& g)
     g.addTransform(juce::AffineTransform::scale(kUiScale));
     g.drawImage(bgImage(), juce::Rectangle<float>(0.0f, 0.0f, kBaseWidth, kBaseHeight),
                 juce::RectanglePlacement::stretchToFit);
+    drawAttackScale(g, displayedArchitecture == QuanpressorDSP::FET);
 }
 
 void QuanpressorAudioProcessorEditor::resized()
 {
     content.setBounds(0, 0, kBaseWidth, kBaseHeight);
     content.setTransform(juce::AffineTransform::scale(kUiScale));
-    licenseComponent.setBounds(getLocalBounds().removeFromBottom(36));
+    const int contentHeight = juce::roundToInt(kBaseHeight * kUiScale);
+    licenseComponent.setBounds(
+        0,
+        contentHeight,
+        getWidth(),
+        licenseComponent.isVisible() ? kLicenseBarHeight : 0);
     licenseComponent.toFront(false);
 
     const auto placeKnob = [](juce::Slider& slider, int x, int y)
@@ -693,6 +803,8 @@ void QuanpressorAudioProcessorEditor::resized()
 void QuanpressorAudioProcessorEditor::updateArchitectureControls()
 {
     const int m = static_cast<int>(proc.apvts.getRawParameterValue("mode")->load());
+    const bool architectureChanged = m != displayedArchitecture;
+    displayedArchitecture = m;
     const bool isFet = m == QuanpressorDSP::FET;
     const bool isOpto = m == QuanpressorDSP::OPTO;
     const bool isVca = m == QuanpressorDSP::VCA;
@@ -709,11 +821,12 @@ void QuanpressorAudioProcessorEditor::updateArchitectureControls()
         control.setAlpha(1.0f);
     };
 
-    enableControl(ratio, !isMu);
+    enableControl(ratio, true);
     ratio.useFetRatioGrid = isFet;
-    enableControl(attack, isFet || isVca);
-    enableControl(release, (isFet || isVca) && !autoReleaseOn);
-    enableControl(knee, isVca);
+    enableControl(attack, true);
+    attack.useFetAttackDisplay = isFet;
+    enableControl(release, !(isFet || isVca) || !autoReleaseOn);
+    enableControl(knee, isVca || isMu);
     timeConstant.setEnabled(isMu);
     timeConstant.setAlpha(1.0f);
     enableControl(makeup, !levelMatchOn);
@@ -726,7 +839,25 @@ void QuanpressorAudioProcessorEditor::updateArchitectureControls()
     ratio.setTooltip(isFet ? "Fixed FET ratios: 4:1, 8:1, 12:1 or 20:1."
                      : isOpto ? "Lower values favour compression; higher values move toward limiting."
                      : isVca ? "Continuous fixed ratio from 1.5:1 to 20:1."
-                     : juce::String());
+                     : "Controls the Vari-Mu sidechain loop strength; ratio still increases with level.");
+    attack.setTooltip(isMu
+        ? "Fine trim around the selected Vari-Mu time constant attack."
+        : isOpto
+            ? "Controls the optical light-source attack."
+            : "Sets compressor attack time.");
+    release.setTooltip(isMu
+        ? "Fine trim around the selected Vari-Mu time constant release."
+        : isOpto
+            ? "Scales the fast and slow photocell recovery times."
+            : "Sets compressor release time.");
+    knee.setTooltip(isMu
+        ? "Sets the Vari-Mu rectifier transition width."
+        : isVca
+            ? "Sets the VCA gain-computer knee width."
+            : juce::String());
+
+    if (architectureChanged)
+        repaint(scaledUiRectangle(kAttackScaleBaseBounds));
 }
 
 void QuanpressorAudioProcessorEditor::setModeFromButton(int index)
@@ -778,6 +909,16 @@ void QuanpressorAudioProcessorEditor::setOversamplingFromButton(int factor)
 
     oversampling2x.setToggleState(shouldEnable && factor == 2, juce::dontSendNotification);
     oversampling4x.setToggleState(shouldEnable && factor == 4, juce::dontSendNotification);
+}
+
+void QuanpressorAudioProcessorEditor::updateLicenseLayout()
+{
+    const int contentWidth = juce::roundToInt(kBaseWidth * kUiScale);
+    const int contentHeight = juce::roundToInt(kBaseHeight * kUiScale);
+    const int targetHeight = contentHeight
+        + (licenseComponent.isVisible() ? kLicenseBarHeight : 0);
+    if (getWidth() != contentWidth || getHeight() != targetHeight)
+        setSize(contentWidth, targetHeight);
 }
 
 void QuanpressorAudioProcessorEditor::updateMeterPrivacy(bool shouldBeEnabled, bool forceCapture)
@@ -841,6 +982,7 @@ void QuanpressorAudioProcessorEditor::updateMeterPrivacy(bool shouldBeEnabled, b
 
 void QuanpressorAudioProcessorEditor::timerCallback()
 {
+    updateLicenseLayout();
     updateArchitectureControls();
     const int vuModeIndex = juce::jlimit(0, 2,
         static_cast<int>(proc.apvts.getRawParameterValue("vuMode")->load()));

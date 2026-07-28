@@ -1,5 +1,6 @@
 #include "../Source/PluginProcessor.h"
 
+#include <array>
 #include <cmath>
 #include <iostream>
 #include <memory>
@@ -13,6 +14,18 @@ struct ParameterChangeCounter final : juce::AudioProcessorParameter::Listener
 
     int valueChanges = 0;
 };
+
+juce::Slider* findSlider(juce::Component& component, const juce::String& componentId)
+{
+    if (component.getComponentID() == componentId)
+        return dynamic_cast<juce::Slider*>(&component);
+
+    for (int i = 0; i < component.getNumChildComponents(); ++i)
+        if (auto* slider = findSlider(*component.getChildComponent(i), componentId))
+            return slider;
+
+    return nullptr;
+}
 }
 
 int main()
@@ -37,6 +50,31 @@ int main()
     {
         std::unique_ptr<juce::AudioProcessorEditor> editor(processor.createEditor());
         whileEditorIsOpen = processor.apvts.getRawParameterValue("ratio")->load();
+
+        auto* attack = findSlider(*editor, "attack");
+        if (attack == nullptr)
+        {
+            std::cerr << "Attack slider is missing\n";
+            return 1;
+        }
+
+        const std::array<std::pair<double, juce::String>, 5> popupCases {{
+            { 0.02, "0.02 ms" },
+            { 10.0, "0.27 ms" },
+            { 30.0, "0.45 ms" },
+            { 60.0, "0.62 ms" },
+            { 100.0, "0.80 ms" }
+        }};
+        for (const auto& [parameterValue, expectedText] : popupCases)
+        {
+            const auto actualText = attack->getTextFromValue(parameterValue);
+            if (actualText != expectedText)
+            {
+                std::cerr << "FET Attack popup displayed " << actualText
+                          << " instead of " << expectedText << '\n';
+                return 1;
+            }
+        }
     }
 
     ratio->removeListener(&changeCounter);
@@ -69,6 +107,6 @@ int main()
     }
 
     std::cout << "PASS: Editor preserved Ratio " << afterEditor
-              << " while FET DSP resolved it to 4:1\n";
+              << ", resolved FET DSP to 4:1, and displayed mapped Attack time\n";
     return 0;
 }

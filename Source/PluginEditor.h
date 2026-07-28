@@ -21,6 +21,7 @@ public:
         enum class Colourway { Green, Yellow, Red, Blue, Grey };
 
         bool useFetRatioGrid = false;
+        bool useFetAttackDisplay = false;
         bool useIntegerGrid = false;
         bool useTimeConstantScale = false;
         juce::String parameterId;
@@ -143,6 +144,7 @@ private:
     void setModeFromButton(int index);
     void setVuModeFromButton(int index);
     void setOversamplingFromButton(int factor);
+    void updateLicenseLayout();
     void updateMeterPrivacy(bool enabled, bool forceCapture = false);
     void addKnob(Knob&, const char*);
 
@@ -186,6 +188,7 @@ private:
     std::array<std::unique_ptr<MeterPrivacyRenderer>, 2> meterPrivacyRenderers;
     bool meterPrivacyEnabled = false;
     int meterPrivacyCaptureCounter = 0;
+    int displayedArchitecture = -1;
 
     std::vector<std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>> sa;
     std::vector<std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment>> ca;

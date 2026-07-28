@@ -55,6 +55,10 @@
       <FILE id="SB7yZo" name="Auto Release Button_ON.png" compile="0" resource="1"
             file="Assets/Auto Release Button_ON.png"/>
       <FILE id="SenDHn" name="BG.png" compile="0" resource="1" file="Assets/BG.png"/>
+      <FILE id="fASc01" name="FET_Attack_Scale.png" compile="0" resource="1"
+            file="Assets/FET_Attack_Scale.png"/>
+      <FILE id="nASc01" name="Normal_Attack_Scales.png" compile="0" resource="1"
+            file="Assets/Normal_Attack_Scales.png"/>
       <FILE id="SONT5i" name="BlueKnob.png" compile="0" resource="1" file="Assets/BlueKnob.png"/>
       <FILE id="O4ppFa" name="FET Button.png" compile="0" resource="1" file="Assets/FET Button.png"/>
       <FILE id="Lh6mnU" name="FET Button_ON.png" compile="0" resource="1"

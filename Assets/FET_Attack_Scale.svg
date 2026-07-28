@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="175.5" height="160.5" viewBox="120 405 117 107"
+     role="img" aria-labelledby="title description">
+  <title id="title">Quanpressor FET Attack scale</title>
+  <desc id="description">FET-only Attack scale aligned to the Quanpressor 1360 by 820 editor artwork. Labels show the mapped detector time in milliseconds.</desc>
+  <g id="attack-fet"
+     data-mode="fet"
+     fill="#ffffff" fill-opacity="0.60"
+     stroke="#ffffff" stroke-opacity="0.46" stroke-width="0.8"
+     font-family="Helvetica, Arial, sans-serif"
+     font-size="10" font-weight="700"
+     text-anchor="middle" dominant-baseline="middle">
+    <text x="178.50" y="414.00" stroke="none">ATTACK</text>
+
+    <path d="M153.16 494.84 L146.82 501.18"/>
+    <text x="143.20" y="504.80" stroke="none">0.02</text>
+
+    <path d="M144.42 480.60 L135.90 483.38"/>
+    <text x="131.04" y="484.97" stroke="none">0.27</text>
+
+    <path d="M149.49 448.45 L142.24 443.19"/>
+    <text x="138.09" y="440.18" stroke="none">0.45</text>
+
+    <path d="M194.76 437.56 L198.82 429.58"/>
+    <text x="201.15" y="425.01" stroke="none">0.62</text>
+
+    <path d="M203.84 494.84 L210.18 501.18"/>
+    <text x="213.80" y="504.80" stroke="none">0.80 ms</text>
+  </g>
+</svg>

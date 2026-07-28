@@ -47,6 +47,7 @@
 		4DB134FF8DA587CD078E9338 /* PluginProcessor.cpp */ = {isa = PBXBuildFile; fileRef = EE5D7D5AFF34EB3055598126; };
 		4F1C3D303D89C4F40839BF18 /* Standalone Plugin */ = {isa = PBXBuildFile; fileRef = 9FFCE4F5C5655AA9B6661671; };
 		52AFC37C7344F241CCADB069 /* include_juce_audio_utils.mm */ = {isa = PBXBuildFile; fileRef = C88E2465D533B0E10A56D804; };
+		56FE26BE559AA8A8CEC4053C /* LicenseManager.cpp */ = {isa = PBXBuildFile; fileRef = 8A386202BDA0EA3B24D16D36; };
 		587E17FB225CB49AF4F7DCA9 /* include_juce_gui_extra.mm */ = {isa = PBXBuildFile; fileRef = 7EEF4E8F6BFAEF0D14197C1A; };
 		5FD6CF220FEBD7C8B936F379 /* include_juce_events.mm */ = {isa = PBXBuildFile; fileRef = 503738D8211331E36491739A; };
 		63DE1C5F598EB00B3D88D854 /* include_juce_dsp.mm */ = {isa = PBXBuildFile; fileRef = 34DAEED0CBABCF42839E8971; };
@@ -134,13 +135,18 @@
 		76AC3D8A9F7C7A0B63C1E9F0 /* juce_audio_devices */ /* juce_audio_devices */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_audio_devices; path = /Users/shoma/Documents/JUCE/modules/juce_audio_devices; sourceTree = "<absolute>"; };
 		76B83E80329229060DF020E5 /* OpenGL.framework */ /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		78895B3E45EA75D2E37CD484 /* Accelerate.framework */ /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
+		7A4B0963F370BD8EEB355C2F /* FET_Attack_Scale.png */ /* FET_Attack_Scale.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = FET_Attack_Scale.png; path = ../../Assets/FET_Attack_Scale.png; sourceTree = SOURCE_ROOT; };
 		7E74461CF479EAD8024F60CE /* PluginEditor.cpp */ /* PluginEditor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PluginEditor.cpp; path = ../../Source/PluginEditor.cpp; sourceTree = SOURCE_ROOT; };
 		7EEF4E8F6BFAEF0D14197C1A /* include_juce_gui_extra.mm */ /* include_juce_gui_extra.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_gui_extra.mm; path = ../../JuceLibraryCode/include_juce_gui_extra.mm; sourceTree = SOURCE_ROOT; };
+		7F5049F840F8A6B85B8DF327 /* Normal_Attack_Scales.png */ /* Normal_Attack_Scales.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = Normal_Attack_Scales.png; path = ../../Assets/Normal_Attack_Scales.png; sourceTree = SOURCE_ROOT; };
 		8030F08C18FF3176792AA85B /* include_juce_data_structures.mm */ /* include_juce_data_structures.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_data_structures.mm; path = ../../JuceLibraryCode/include_juce_data_structures.mm; sourceTree = SOURCE_ROOT; };
+		811A0D41EF7BB5ED00FFBE6C /* LicenseManager.h */ /* LicenseManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LicenseManager.h; path = ../../Source/license/LicenseManager.h; sourceTree = SOURCE_ROOT; };
 		83A729089D7F90EF0EE5F87E /* RESET PHOTOCELL.png */ /* RESET PHOTOCELL.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "RESET PHOTOCELL.png"; path = "../../Assets/RESET PHOTOCELL.png"; sourceTree = SOURCE_ROOT; };
+		83BB06D299B2D9A8E357991B /* AudioRestrictor.h */ /* AudioRestrictor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = AudioRestrictor.h; path = ../../Source/license/AudioRestrictor.h; sourceTree = SOURCE_ROOT; };
 		856158EF35FB0AF158AEA37C /* Cocoa.framework */ /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		86DCCB77ED90CFE9826CAE78 /* WebKit.framework */ /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		8889871E2BDCD1059470C362 /* include_juce_audio_plugin_client_VST3.mm */ /* include_juce_audio_plugin_client_VST3.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_audio_plugin_client_VST3.mm; path = ../../JuceLibraryCode/include_juce_audio_plugin_client_VST3.mm; sourceTree = SOURCE_ROOT; };
+		8A386202BDA0EA3B24D16D36 /* LicenseManager.cpp */ /* LicenseManager.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = LicenseManager.cpp; path = ../../Source/license/LicenseManager.cpp; sourceTree = SOURCE_ROOT; };
 		8A55606F7ECCABFC16C032D0 /* MetalKit.framework */ /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
 		8E3CFF18E9E321752B2B700F /* AudioToolbox.framework */ /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		8FC66A12DBA39BDD0CF2781B /* GRHistory_Embos.png */ /* GRHistory_Embos.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = GRHistory_Embos.png; path = ../../Assets/GRHistory_Embos.png; sourceTree = SOURCE_ROOT; };
@@ -154,6 +160,7 @@
 		A173BEE4EDF739C3534AAA89 /* Vari-Mu Button_ON.png */ /* Vari-Mu Button_ON.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Vari-Mu Button_ON.png"; path = "../../Assets/Vari-Mu Button_ON.png"; sourceTree = SOURCE_ROOT; };
 		A1ED4C52FCD1363BD49E38F5 /* include_juce_audio_processors_headless.mm */ /* include_juce_audio_processors_headless.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_audio_processors_headless.mm; path = ../../JuceLibraryCode/include_juce_audio_processors_headless.mm; sourceTree = SOURCE_ROOT; };
 		A202CCC669B90D8A2ED6CD34 /* JuceHeader.h */ /* JuceHeader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = JuceHeader.h; path = ../../JuceLibraryCode/JuceHeader.h; sourceTree = SOURCE_ROOT; };
+		A62E7EC6C22834838681AAA0 /* LicenseComponent.h */ /* LicenseComponent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LicenseComponent.h; path = ../../Source/license/LicenseComponent.h; sourceTree = SOURCE_ROOT; };
 		A7A7F3A496D77244FFB104E1 /* VST3 */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Quanpressor.vst3; sourceTree = BUILT_PRODUCTS_DIR; };
 		A835145AC057D813D18AF68D /* include_juce_audio_processors_headless_ara.cpp */ /* include_juce_audio_processors_headless_ara.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = include_juce_audio_processors_headless_ara.cpp; path = ../../JuceLibraryCode/include_juce_audio_processors_headless_ara.cpp; sourceTree = SOURCE_ROOT; };
 		A8EBDAF3D0A6D30A933B8DBD /* CoreAudio.framework */ /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
@@ -323,6 +330,7 @@
 				EE5D7D5AFF34EB3055598126,
 				616EA210B497FCF88FBAEB14,
 				F5EF2CF12B59E8F37AB30F51,
+				5988BF45AC27C667BB60C28B,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -375,6 +383,17 @@
 			name = "JUCE Library Code";
 			sourceTree = "<group>";
 		};
+		5988BF45AC27C667BB60C28B /* license */ = {
+			isa = PBXGroup;
+			children = (
+				83BB06D299B2D9A8E357991B,
+				A62E7EC6C22834838681AAA0,
+				8A386202BDA0EA3B24D16D36,
+				811A0D41EF7BB5ED00FFBE6C,
+			);
+			name = license;
+			sourceTree = "<group>";
+		};
 		69DEA4E743DF9834DEF6BE3D /* Quanpressor */ = {
 			isa = PBXGroup;
 			children = (
@@ -423,6 +442,8 @@
 				EE8853126DA708D6B2CBEB0D,
 				4AE962EEA5BBCCE12DE39A03,
 				D23A971F27CBA3EBB6501A22,
+				7A4B0963F370BD8EEB355C2F,
+				7F5049F840F8A6B85B8DF327,
 				51B78A408B9B1867BDAEEF80,
 				E2C87F0B9121BCB897A4E110,
 				DE4568375180C94001696A09,
@@ -823,6 +844,7 @@
 				8FE9D442CB05EF7627BA0089,
 				F756534C61D29A868FCC35FF,
 				4DB134FF8DA587CD078E9338,
+				56FE26BE559AA8A8CEC4053C,
 				A2875214A74FB69213DB7763,
 				9A2C6C4C2D03B6A5CCF7F40A,
 				023D10ADC532C49677D7D9C1,
@@ -1020,14 +1042,15 @@
 					"$(SRCROOT)/../../JuceLibraryCode",
 					"/Users/shoma/Documents/JUCE/modules",
 					"$(SRCROOT)/../../../Patina/include",
+					"$(SRCROOT)/../../libs/libsodium/include",
 					"/Users/shoma/Documents/JUCE/modules/juce_audio_plugin_client/AU",
 					"$(inherited)",
 				);
 				INFOPLIST_FILE = Info-Standalone_Plugin.plist;
 				INFOPLIST_PREPROCESS = NO;
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
-				MTL_HEADER_SEARCH_PATHS = "/Users/shoma/Documents/JUCE/modules/juce_audio_processors_headless/format_types/VST3_SDK $(SRCROOT)/../../JuceLibraryCode /Users/shoma/Documents/JUCE/modules $(SRCROOT)/../../../Patina/include /Users/shoma/Documents/JUCE/modules/juce_audio_plugin_client/AU";
-				OTHER_LDFLAGS = "-lQuanpressor";
+				MTL_HEADER_SEARCH_PATHS = "/Users/shoma/Documents/JUCE/modules/juce_audio_processors_headless/format_types/VST3_SDK $(SRCROOT)/../../JuceLibraryCode /Users/shoma/Documents/JUCE/modules $(SRCROOT)/../../../Patina/include $(SRCROOT)/../../libs/libsodium/include /Users/shoma/Documents/JUCE/modules/juce_audio_plugin_client/AU";
+				OTHER_LDFLAGS = "-lQuanpressor ../../libs/libsodium/libsodium_universal.a";
 				PRODUCT_BUNDLE_IDENTIFIER = org.soundrave.quanpressor;
 				PRODUCT_NAME = "Quanpressor";
 				USE_HEADERMAP = NO;
@@ -1133,13 +1156,15 @@
 					"$(SRCROOT)/../../JuceLibraryCode",
 					"/Users/shoma/Documents/JUCE/modules",
 					"$(SRCROOT)/../../../Patina/include",
+					"$(SRCROOT)/../../libs/libsodium/include",
 					"/Users/shoma/Documents/JUCE/modules/juce_audio_plugin_client/AU",
 					"$(inherited)",
 				);
 				INFOPLIST_FILE = Info-VST3_Manifest_Helper.plist;
 				INFOPLIST_PREPROCESS = NO;
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
-				MTL_HEADER_SEARCH_PATHS = "/Users/shoma/Documents/JUCE/modules/juce_audio_processors_headless/format_types/VST3_SDK $(SRCROOT)/../../JuceLibraryCode /Users/shoma/Documents/JUCE/modules $(SRCROOT)/../../../Patina/include /Users/shoma/Documents/JUCE/modules/juce_audio_plugin_client/AU";
+				MTL_HEADER_SEARCH_PATHS = "/Users/shoma/Documents/JUCE/modules/juce_audio_processors_headless/format_types/VST3_SDK $(SRCROOT)/../../JuceLibraryCode /Users/shoma/Documents/JUCE/modules $(SRCROOT)/../../../Patina/include $(SRCROOT)/../../libs/libsodium/include /Users/shoma/Documents/JUCE/modules/juce_audio_plugin_client/AU";
+				OTHER_LDFLAGS = "../../libs/libsodium/libsodium_universal.a";
 				PRODUCT_BUNDLE_IDENTIFIER = org.soundrave.quanpressor;
 				PRODUCT_NAME = "juce_vst3_helper";
 				USE_HEADERMAP = NO;
@@ -1254,13 +1279,15 @@
 					"$(SRCROOT)/../../JuceLibraryCode",
 					"/Users/shoma/Documents/JUCE/modules",
 					"$(SRCROOT)/../../../Patina/include",
+					"$(SRCROOT)/../../libs/libsodium/include",
 					"/Users/shoma/Documents/JUCE/modules/juce_audio_plugin_client/AU",
 					"$(inherited)",
 				);
 				INSTALL_PATH = "@executable_path/../Frameworks";
 				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
-				MTL_HEADER_SEARCH_PATHS = "/Users/shoma/Documents/JUCE/modules/juce_audio_processors_headless/format_types/VST3_SDK $(SRCROOT)/../../JuceLibraryCode /Users/shoma/Documents/JUCE/modules $(SRCROOT)/../../../Patina/include /Users/shoma/Documents/JUCE/modules/juce_audio_plugin_client/AU";
+				MTL_HEADER_SEARCH_PATHS = "/Users/shoma/Documents/JUCE/modules/juce_audio_processors_headless/format_types/VST3_SDK $(SRCROOT)/../../JuceLibraryCode /Users/shoma/Documents/JUCE/modules $(SRCROOT)/../../../Patina/include $(SRCROOT)/../../libs/libsodium/include /Users/shoma/Documents/JUCE/modules/juce_audio_plugin_client/AU";
+				OTHER_LDFLAGS = "../../libs/libsodium/libsodium_universal.a";
 				PRODUCT_BUNDLE_IDENTIFIER = org.soundrave.quanpressor;
 				PRODUCT_NAME = "Quanpressor";
 				SKIP_INSTALL = YES;
@@ -1473,6 +1500,7 @@
 					"$(SRCROOT)/../../JuceLibraryCode",
 					"/Users/shoma/Documents/JUCE/modules",
 					"$(SRCROOT)/../../../Patina/include",
+					"$(SRCROOT)/../../libs/libsodium/include",
 					"/Users/shoma/Documents/JUCE/modules/juce_audio_plugin_client/AU",
 					"$(inherited)",
 				);
@@ -1481,8 +1509,8 @@
 				INSTALL_PATH = "$(HOME)/Library/Audio/Plug-Ins/Components/";
 				LIBRARY_STYLE = Bundle;
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
-				MTL_HEADER_SEARCH_PATHS = "/Users/shoma/Documents/JUCE/modules/juce_audio_processors_headless/format_types/VST3_SDK $(SRCROOT)/../../JuceLibraryCode /Users/shoma/Documents/JUCE/modules $(SRCROOT)/../../../Patina/include /Users/shoma/Documents/JUCE/modules/juce_audio_plugin_client/AU";
-				OTHER_LDFLAGS = "-bundle -lQuanpressor";
+				MTL_HEADER_SEARCH_PATHS = "/Users/shoma/Documents/JUCE/modules/juce_audio_processors_headless/format_types/VST3_SDK $(SRCROOT)/../../JuceLibraryCode /Users/shoma/Documents/JUCE/modules $(SRCROOT)/../../../Patina/include $(SRCROOT)/../../libs/libsodium/include /Users/shoma/Documents/JUCE/modules/juce_audio_plugin_client/AU";
+				OTHER_LDFLAGS = "-bundle -lQuanpressor ../../libs/libsodium/libsodium_universal.a";
 				OTHER_REZFLAGS = "-d ppc_$ppc -d i386_$i386 -d ppc64_$ppc64 -d x86_64_$x86_64 -d arm64_$arm64 -I /System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/A/Headers -I \"$(DEVELOPER_DIR)/Extras/CoreAudio/AudioUnits/AUPublic/AUBase\" -I \"$(DEVELOPER_DIR)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/AudioUnit.framework/Headers\"";
 				PRODUCT_BUNDLE_IDENTIFIER = org.soundrave.quanpressor;
 				PRODUCT_NAME = "Quanpressor";
@@ -1591,12 +1619,14 @@
 					"$(SRCROOT)/../../JuceLibraryCode",
 					"/Users/shoma/Documents/JUCE/modules",
 					"$(SRCROOT)/../../../Patina/include",
+					"$(SRCROOT)/../../libs/libsodium/include",
 					"/Users/shoma/Documents/JUCE/modules/juce_audio_plugin_client/AU",
 					"$(inherited)",
 				);
 				INSTALL_PATH = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
-				MTL_HEADER_SEARCH_PATHS = "/Users/shoma/Documents/JUCE/modules/juce_audio_processors_headless/format_types/VST3_SDK $(SRCROOT)/../../JuceLibraryCode /Users/shoma/Documents/JUCE/modules $(SRCROOT)/../../../Patina/include /Users/shoma/Documents/JUCE/modules/juce_audio_plugin_client/AU";
+				MTL_HEADER_SEARCH_PATHS = "/Users/shoma/Documents/JUCE/modules/juce_audio_processors_headless/format_types/VST3_SDK $(SRCROOT)/../../JuceLibraryCode /Users/shoma/Documents/JUCE/modules $(SRCROOT)/../../../Patina/include $(SRCROOT)/../../libs/libsodium/include /Users/shoma/Documents/JUCE/modules/juce_audio_plugin_client/AU";
+				OTHER_LDFLAGS = "../../libs/libsodium/libsodium_universal.a";
 				PRODUCT_BUNDLE_IDENTIFIER = org.soundrave.quanpressor;
 				PRODUCT_NAME = "Quanpressor";
 				SKIP_INSTALL = YES;
@@ -1703,6 +1733,7 @@
 					"$(SRCROOT)/../../JuceLibraryCode",
 					"/Users/shoma/Documents/JUCE/modules",
 					"$(SRCROOT)/../../../Patina/include",
+					"$(SRCROOT)/../../libs/libsodium/include",
 					"/Users/shoma/Documents/JUCE/modules/juce_audio_plugin_client/AU",
 					"$(inherited)",
 				);
@@ -1710,8 +1741,8 @@
 				INFOPLIST_PREPROCESS = NO;
 				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
-				MTL_HEADER_SEARCH_PATHS = "/Users/shoma/Documents/JUCE/modules/juce_audio_processors_headless/format_types/VST3_SDK $(SRCROOT)/../../JuceLibraryCode /Users/shoma/Documents/JUCE/modules $(SRCROOT)/../../../Patina/include /Users/shoma/Documents/JUCE/modules/juce_audio_plugin_client/AU";
-				OTHER_LDFLAGS = "-lQuanpressor";
+				MTL_HEADER_SEARCH_PATHS = "/Users/shoma/Documents/JUCE/modules/juce_audio_processors_headless/format_types/VST3_SDK $(SRCROOT)/../../JuceLibraryCode /Users/shoma/Documents/JUCE/modules $(SRCROOT)/../../../Patina/include $(SRCROOT)/../../libs/libsodium/include /Users/shoma/Documents/JUCE/modules/juce_audio_plugin_client/AU";
+				OTHER_LDFLAGS = "-lQuanpressor ../../libs/libsodium/libsodium_universal.a";
 				PRODUCT_BUNDLE_IDENTIFIER = org.soundrave.quanpressor;
 				PRODUCT_NAME = "Quanpressor";
 				USE_HEADERMAP = NO;
@@ -1818,6 +1849,7 @@
 					"$(SRCROOT)/../../JuceLibraryCode",
 					"/Users/shoma/Documents/JUCE/modules",
 					"$(SRCROOT)/../../../Patina/include",
+					"$(SRCROOT)/../../libs/libsodium/include",
 					"/Users/shoma/Documents/JUCE/modules/juce_audio_plugin_client/AU",
 					"$(inherited)",
 				);
@@ -1827,8 +1859,8 @@
 				LIBRARY_STYLE = Bundle;
 				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
-				MTL_HEADER_SEARCH_PATHS = "/Users/shoma/Documents/JUCE/modules/juce_audio_processors_headless/format_types/VST3_SDK $(SRCROOT)/../../JuceLibraryCode /Users/shoma/Documents/JUCE/modules $(SRCROOT)/../../../Patina/include /Users/shoma/Documents/JUCE/modules/juce_audio_plugin_client/AU";
-				OTHER_LDFLAGS = "-bundle -lQuanpressor";
+				MTL_HEADER_SEARCH_PATHS = "/Users/shoma/Documents/JUCE/modules/juce_audio_processors_headless/format_types/VST3_SDK $(SRCROOT)/../../JuceLibraryCode /Users/shoma/Documents/JUCE/modules $(SRCROOT)/../../../Patina/include $(SRCROOT)/../../libs/libsodium/include /Users/shoma/Documents/JUCE/modules/juce_audio_plugin_client/AU";
+				OTHER_LDFLAGS = "-bundle -lQuanpressor ../../libs/libsodium/libsodium_universal.a";
 				OTHER_REZFLAGS = "-d ppc_$ppc -d i386_$i386 -d ppc64_$ppc64 -d x86_64_$x86_64 -d arm64_$arm64 -I /System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/A/Headers -I \"$(DEVELOPER_DIR)/Extras/CoreAudio/AudioUnits/AUPublic/AUBase\" -I \"$(DEVELOPER_DIR)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/AudioUnit.framework/Headers\"";
 				PRODUCT_BUNDLE_IDENTIFIER = org.soundrave.quanpressor;
 				PRODUCT_NAME = "Quanpressor";
@@ -1936,6 +1968,7 @@
 					"$(SRCROOT)/../../JuceLibraryCode",
 					"/Users/shoma/Documents/JUCE/modules",
 					"$(SRCROOT)/../../../Patina/include",
+					"$(SRCROOT)/../../libs/libsodium/include",
 					"/Users/shoma/Documents/JUCE/modules/juce_audio_plugin_client/AU",
 					"$(inherited)",
 				);
@@ -1943,7 +1976,8 @@
 				INFOPLIST_PREPROCESS = NO;
 				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
-				MTL_HEADER_SEARCH_PATHS = "/Users/shoma/Documents/JUCE/modules/juce_audio_processors_headless/format_types/VST3_SDK $(SRCROOT)/../../JuceLibraryCode /Users/shoma/Documents/JUCE/modules $(SRCROOT)/../../../Patina/include /Users/shoma/Documents/JUCE/modules/juce_audio_plugin_client/AU";
+				MTL_HEADER_SEARCH_PATHS = "/Users/shoma/Documents/JUCE/modules/juce_audio_processors_headless/format_types/VST3_SDK $(SRCROOT)/../../JuceLibraryCode /Users/shoma/Documents/JUCE/modules $(SRCROOT)/../../../Patina/include $(SRCROOT)/../../libs/libsodium/include /Users/shoma/Documents/JUCE/modules/juce_audio_plugin_client/AU";
+				OTHER_LDFLAGS = "../../libs/libsodium/libsodium_universal.a";
 				PRODUCT_BUNDLE_IDENTIFIER = org.soundrave.quanpressor;
 				PRODUCT_NAME = "juce_vst3_helper";
 				USE_HEADERMAP = NO;
@@ -2050,6 +2084,7 @@
 					"$(SRCROOT)/../../JuceLibraryCode",
 					"/Users/shoma/Documents/JUCE/modules",
 					"$(SRCROOT)/../../../Patina/include",
+					"$(SRCROOT)/../../libs/libsodium/include",
 					"/Users/shoma/Documents/JUCE/modules/juce_audio_plugin_client/AU",
 					"$(inherited)",
 				);
@@ -2059,8 +2094,8 @@
 				LIBRARY_STYLE = Bundle;
 				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
-				MTL_HEADER_SEARCH_PATHS = "/Users/shoma/Documents/JUCE/modules/juce_audio_processors_headless/format_types/VST3_SDK $(SRCROOT)/../../JuceLibraryCode /Users/shoma/Documents/JUCE/modules $(SRCROOT)/../../../Patina/include /Users/shoma/Documents/JUCE/modules/juce_audio_plugin_client/AU";
-				OTHER_LDFLAGS = "-bundle -lQuanpressor";
+				MTL_HEADER_SEARCH_PATHS = "/Users/shoma/Documents/JUCE/modules/juce_audio_processors_headless/format_types/VST3_SDK $(SRCROOT)/../../JuceLibraryCode /Users/shoma/Documents/JUCE/modules $(SRCROOT)/../../../Patina/include $(SRCROOT)/../../libs/libsodium/include /Users/shoma/Documents/JUCE/modules/juce_audio_plugin_client/AU";
+				OTHER_LDFLAGS = "-bundle -lQuanpressor ../../libs/libsodium/libsodium_universal.a";
 				PRODUCT_BUNDLE_IDENTIFIER = org.soundrave.quanpressor;
 				PRODUCT_NAME = "Quanpressor";
 				USE_HEADERMAP = NO;
@@ -2168,6 +2203,7 @@
 					"$(SRCROOT)/../../JuceLibraryCode",
 					"/Users/shoma/Documents/JUCE/modules",
 					"$(SRCROOT)/../../../Patina/include",
+					"$(SRCROOT)/../../libs/libsodium/include",
 					"/Users/shoma/Documents/JUCE/modules/juce_audio_plugin_client/AU",
 					"$(inherited)",
 				);
@@ -2176,8 +2212,8 @@
 				INSTALL_PATH = "$(HOME)/Library/Audio/Plug-Ins/VST3/";
 				LIBRARY_STYLE = Bundle;
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
-				MTL_HEADER_SEARCH_PATHS = "/Users/shoma/Documents/JUCE/modules/juce_audio_processors_headless/format_types/VST3_SDK $(SRCROOT)/../../JuceLibraryCode /Users/shoma/Documents/JUCE/modules $(SRCROOT)/../../../Patina/include /Users/shoma/Documents/JUCE/modules/juce_audio_plugin_client/AU";
-				OTHER_LDFLAGS = "-bundle -lQuanpressor";
+				MTL_HEADER_SEARCH_PATHS = "/Users/shoma/Documents/JUCE/modules/juce_audio_processors_headless/format_types/VST3_SDK $(SRCROOT)/../../JuceLibraryCode /Users/shoma/Documents/JUCE/modules $(SRCROOT)/../../../Patina/include $(SRCROOT)/../../libs/libsodium/include /Users/shoma/Documents/JUCE/modules/juce_audio_plugin_client/AU";
+				OTHER_LDFLAGS = "-bundle -lQuanpressor ../../libs/libsodium/libsodium_universal.a";
 				PRODUCT_BUNDLE_IDENTIFIER = org.soundrave.quanpressor;
 				PRODUCT_NAME = "Quanpressor";
 				USE_HEADERMAP = NO;

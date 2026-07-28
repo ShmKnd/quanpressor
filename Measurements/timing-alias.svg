@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="760" viewBox="0 0 1160 760">
+<style>text{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;fill:#252525}.title{font-size:24px;font-weight:700}.label{font-size:13px}.small{font-size:11px}.grid{stroke:#d8d8d8;stroke-width:1}.axis{stroke:#555;stroke-width:1.25}.panel{fill:#fff;stroke:#aaa}</style>
+<rect width="100%" height="100%" fill="#f7f7f5"/>
+<text x="40" y="38" class="title">Quanpressor timing and alias measurements at 48 kHz</text>
+<rect class="panel" x="90" y="90" width="1010" height="135"/>
+<text class="label" x="90" y="78" font-weight="700">Attack t63 (ms, logarithmic)</text>
+<rect x="158" y="204.08" width="30" height="20.92" fill="#777" opacity="0.88"/>
+<text class="small" text-anchor="middle" x="173" y="200.08">0.04</text>
+<rect x="196" y="214.24" width="30" height="10.76" fill="#d55e00" opacity="0.88"/>
+<text class="small" text-anchor="middle" x="211" y="210.24">0.02</text>
+<text class="label" text-anchor="middle" x="190" y="245">FET</text>
+<rect x="403" y="128.30" width="30" height="96.70" fill="#777" opacity="0.88"/>
+<text class="small" text-anchor="middle" x="418" y="124.30">7.33</text>
+<rect x="441" y="116.26" width="30" height="108.74" fill="#cc79a7" opacity="0.88"/>
+<text class="small" text-anchor="middle" x="456" y="112.26">16.67</text>
+<text class="label" text-anchor="middle" x="435" y="245">OPTO</text>
+<rect x="648" y="132.08" width="30" height="92.92" fill="#777" opacity="0.88"/>
+<text class="small" text-anchor="middle" x="663" y="128.08">5.67</text>
+<rect x="686" y="143.12" width="30" height="81.88" fill="#0072b2" opacity="0.88"/>
+<text class="small" text-anchor="middle" x="701" y="139.12">2.67</text>
+<text class="label" text-anchor="middle" x="680" y="245">VCA</text>
+<rect x="893" y="157.50" width="30" height="67.50" fill="#777" opacity="0.88"/>
+<text class="small" text-anchor="middle" x="908" y="153.50">1.00</text>
+<rect x="931" y="173.60" width="30" height="51.40" fill="#009e73" opacity="0.88"/>
+<text class="small" text-anchor="middle" x="946" y="169.60">0.33</text>
+<text class="label" text-anchor="middle" x="925" y="245">VARIMU</text>
+<rect class="panel" x="90" y="305" width="1010" height="135"/>
+<text class="label" x="90" y="293" font-weight="700">Release t63 (ms, logarithmic)</text>
+<rect x="158" y="356.40" width="30" height="83.60" fill="#777" opacity="0.88"/>
+<text class="small" text-anchor="middle" x="173" y="352.40">408.65</text>
+<rect x="196" y="384.83" width="30" height="55.17" fill="#d55e00" opacity="0.88"/>
+<text class="small" text-anchor="middle" x="211" y="380.83">115.69</text>
+<text class="label" text-anchor="middle" x="190" y="460">FET</text>
+<rect x="403" y="317.36" width="30" height="122.64" fill="#777" opacity="0.88"/>
+<text class="small" text-anchor="middle" x="418" y="316.00">2311.00</text>
+<rect x="441" y="373.03" width="30" height="66.97" fill="#cc79a7" opacity="0.88"/>
+<text class="small" text-anchor="middle" x="456" y="369.03">195.33</text>
+<text class="label" text-anchor="middle" x="435" y="460">OPTO</text>
+<rect x="648" y="340.45" width="30" height="99.55" fill="#777" opacity="0.88"/>
+<text class="small" text-anchor="middle" x="663" y="336.45">829.33</text>
+<rect x="686" y="341.63" width="30" height="98.37" fill="#0072b2" opacity="0.88"/>
+<text class="small" text-anchor="middle" x="701" y="337.63">787.00</text>
+<text class="label" text-anchor="middle" x="680" y="460">VCA</text>
+<rect x="893" y="341.60" width="30" height="98.40" fill="#777" opacity="0.88"/>
+<text class="small" text-anchor="middle" x="908" y="337.60">788.00</text>
+<rect x="931" y="363.34" width="30" height="76.66" fill="#009e73" opacity="0.88"/>
+<text class="small" text-anchor="middle" x="946" y="359.34">300.33</text>
+<text class="label" text-anchor="middle" x="925" y="460">VARIMU</text>
+<rect class="panel" x="90" y="520" width="1010" height="135"/>
+<text class="label" x="90" y="508" font-weight="700">10 kHz alias energy (dBc)</text>
+<rect x="158" y="571.71" width="30" height="83.29" fill="#777" opacity="0.88"/>
+<text class="small" text-anchor="middle" x="173" y="567.71">-38.30</text>
+<rect x="196" y="543.58" width="30" height="111.42" fill="#d55e00" opacity="0.88"/>
+<text class="small" text-anchor="middle" x="211" y="539.58">-17.47</text>
+<text class="label" text-anchor="middle" x="190" y="675">FET</text>
+<rect x="403" y="614.92" width="30" height="40.08" fill="#777" opacity="0.88"/>
+<text class="small" text-anchor="middle" x="418" y="610.92">-70.31</text>
+<rect x="441" y="563.67" width="30" height="91.33" fill="#cc79a7" opacity="0.88"/>
+<text class="small" text-anchor="middle" x="456" y="559.67">-32.35</text>
+<text class="label" text-anchor="middle" x="435" y="675">OPTO</text>
+<rect x="648" y="623.11" width="30" height="31.89" fill="#777" opacity="0.88"/>
+<text class="small" text-anchor="middle" x="663" y="619.11">-76.38</text>
+<rect x="686" y="624.90" width="30" height="30.10" fill="#0072b2" opacity="0.88"/>
+<text class="small" text-anchor="middle" x="701" y="620.90">-77.70</text>
+<text class="label" text-anchor="middle" x="680" y="675">VCA</text>
+<rect x="893" y="558.02" width="30" height="96.98" fill="#777" opacity="0.88"/>
+<text class="small" text-anchor="middle" x="908" y="554.02">-28.17</text>
+<rect x="931" y="553.89" width="30" height="101.11" fill="#009e73" opacity="0.88"/>
+<text class="small" text-anchor="middle" x="946" y="549.89">-25.10</text>
+<text class="label" text-anchor="middle" x="925" y="675">VARIMU</text>
+<rect x="820" y="28" width="18" height="12" fill="#777"/>
+<text class="label" x="845" y="39">baseline</text>
+<rect x="930" y="28" width="18" height="12" fill="#0072b2"/>
+<text class="label" x="955" y="39">revised</text>
+</svg>
