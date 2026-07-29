@@ -12,6 +12,16 @@ and Drive reach each nonlinear cell at the same source time. Attenuation is
 clamped to the range `0.001..1.0`, so the gain envelope cannot create positive
 gain.
 
+The optional mono or stereo external sidechain replaces only the detector
+signal when EXT SC is enabled. EXT SC defaults to off, so an unconnected host
+sidechain bus cannot stop the main input from driving compression. The key
+signal never enters the audio path and is independent of the main Input gain.
+SC FILTER and ST LINK apply to the active detector source.
+
+The host-facing sidechain bus is active by default so AU hosts expose their
+sidechain routing control. This does not enable external detection by itself;
+the EXT SC parameter remains the detector-source switch.
+
 The dry path and all native, 2x, and 4x wet paths use the same fixed latency.
 Mode changes use a 30 ms crossfade, quality changes use a 10 ms crossfade, and
 stereo-link changes use a 5 ms control-state transition. FET ratio selections

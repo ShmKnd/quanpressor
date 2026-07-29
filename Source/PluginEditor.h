@@ -58,7 +58,7 @@ public:
         enum class Kind
         {
             Fet, Opto, Vca, VariMu, GrMatch, AutoRelease, AutoGain, StChain, ScFilter, ResetPhotocell,
-            VuOutput, VuInput, VuGr, NoMeter, Os2, Os4
+            VuOutput, VuInput, VuGr, NoMeter, Os2, Os4, ExternalSidechain
         };
 
         explicit ImageButton(const juce::String& name) : juce::Button(name) {}
@@ -89,6 +89,27 @@ private:
         void drawTooltip(juce::Graphics&, const juce::String&, int width, int height) override;
         void drawBubble(juce::Graphics&, juce::BubbleComponent&, const juce::Point<float>& tip,
                         const juce::Rectangle<float>& body) override;
+    };
+
+    struct PresetLookAndFeel : juce::LookAndFeel_V4
+    {
+        PresetLookAndFeel();
+        void drawComboBox(juce::Graphics&, int width, int height, bool isButtonDown,
+                          int buttonX, int buttonY, int buttonWidth, int buttonHeight,
+                          juce::ComboBox&) override;
+        juce::Font getComboBoxFont(juce::ComboBox&) override;
+        void positionComboBoxText(juce::ComboBox&, juce::Label&) override;
+    };
+
+    struct PresetArrowButton : juce::Button
+    {
+        explicit PresetArrowButton(bool pointsRightIn)
+            : juce::Button(pointsRightIn ? "Next preset" : "Previous preset"),
+              pointsRight(pointsRightIn) {}
+
+        void paintButton(juce::Graphics&, bool shouldDrawButtonAsHighlighted,
+                         bool shouldDrawButtonAsDown) override;
+        bool pointsRight = false;
     };
 
     struct Meter : juce::Component
@@ -152,6 +173,13 @@ private:
     void setModeFromButton(int index);
     void setVuModeFromButton(int index);
     void setOversamplingFromButton(int factor);
+    void refreshPresetMenu();
+    void loadPresetMenuItem(int menuId);
+    void selectRelativePreset(int direction);
+    void showSavePresetDialog();
+    void saveUserPresetFromDialog(const juce::String& name);
+    void deleteSelectedUserPreset();
+    void updatePresetDisplay();
     void showInfoDialog();
     void closeInfoPanel();
     void updateLicenseLayout();
@@ -160,9 +188,16 @@ private:
 
     QuanpressorAudioProcessor& proc;
     TooltipLookAndFeel tooltipLookAndFeel;
+    PresetLookAndFeel presetLookAndFeel;
     juce::TooltipWindow tooltipWindow { this, 1700 };
     juce::Component content;
     LicenseComponent licenseComponent;
+    juce::ComboBox presetMenu;
+    PresetArrowButton previousPreset { false };
+    PresetArrowButton nextPreset { true };
+    juce::StringArray userPresetNames;
+    juce::String displayedPresetName;
+    int selectedPresetMenuId = 1;
     InfoButton infoButton;
     std::unique_ptr<QuanpressorInfoOverlay> infoPanel;
     juce::ComboBox mode;
@@ -180,6 +215,7 @@ private:
     ImageButton autoLevel { "AUTO GAIN" };
     ImageButton autoRelease { "AUTO RELEASE" };
     ImageButton grMatch { "GR MATCH" };
+    ImageButton externalSidechain { "EXT SC" };
     ImageButton sidechainHpf { "SC FILTER" };
     ImageButton stereoChain { "ST CHAIN" };
     ImageButton optoReset { "RESET PHOTOCELL" };

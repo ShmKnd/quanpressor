@@ -251,6 +251,13 @@ public:
 
     void process(juce::AudioBuffer<float>& buffer, const Controls& controls)
     {
+        process(buffer, controls, nullptr);
+    }
+
+    void process(juce::AudioBuffer<float>& buffer,
+                 const Controls& controls,
+                 const juce::AudioBuffer<float>* externalSidechain)
+    {
         const int totalSamples = buffer.getNumSamples();
         const int channels = buffer.getNumChannels();
         if (totalSamples <= 0 || channels <= 0)
@@ -265,7 +272,7 @@ public:
             const int samples = juce::jmin(nonlinearMaxBlock, totalSamples - offset);
             juce::AudioBuffer<float> chunk(
                 buffer.getArrayOfWritePointers(), channels, offset, samples);
-            processChunk(chunk, controls);
+            processChunk(chunk, controls, externalSidechain, offset);
         }
     }
 
@@ -1724,7 +1731,9 @@ private:
 
     void processChunk(
         juce::AudioBuffer<float>& buffer,
-        const Controls& controls)
+        const Controls& controls,
+        const juce::AudioBuffer<float>* externalSidechain,
+        int externalSidechainOffset)
     {
         const int samples = buffer.getNumSamples();
         const int channels = buffer.getNumChannels();
@@ -1820,7 +1829,29 @@ private:
             }
         }
 
-        copyBuffer(detectorBuffer, inputReference, channels, samples);
+        const bool useExternalSidechain = externalSidechain != nullptr
+            && externalSidechain->getNumChannels() > 0
+            && externalSidechainOffset >= 0
+            && externalSidechainOffset + samples
+                <= externalSidechain->getNumSamples();
+        if (useExternalSidechain)
+        {
+            const int sidechainChannels = externalSidechain->getNumChannels();
+            for (int channel = 0; channel < channels; ++channel)
+            {
+                const int sourceChannel = sidechainChannels == 1
+                    ? 0 : juce::jmin(channel, sidechainChannels - 1);
+                juce::FloatVectorOperations::copy(
+                    detectorBuffer.getWritePointer(channel),
+                    externalSidechain->getReadPointer(
+                        sourceChannel, externalSidechainOffset),
+                    samples);
+            }
+        }
+        else
+        {
+            copyBuffer(detectorBuffer, inputReference, channels, samples);
+        }
         if (controls.sidechainHpf)
         {
             juce::dsp::AudioBlock<float> sidechainBlock(detectorBuffer);

@@ -6,6 +6,18 @@ namespace
 constexpr const char* trialStartKey = "trial_start_ms";
 constexpr const char* trialLastSeenKey = "trial_last_seen_ms";
 
+#if JUCE_MAC
+juce::File getLegacyProductDataDirectory(const juce::String& product)
+{
+    return juce::File::getSpecialLocation(
+               juce::File::userHomeDirectory)
+        .getChildFile("Library")
+        .getChildFile("Application Support")
+        .getChildFile("SoundRave")
+        .getChildFile(product);
+}
+#endif
+
 juce::String serialiseCanonicalJson(const juce::var& root)
 {
     auto* object = root.getDynamicObject();
@@ -57,10 +69,31 @@ void LicenseManager::initialise(const juce::String& requestedProduct, int reques
     juce::PropertiesFile::Options options;
     options.applicationName = "license_state";
     options.filenameSuffix = ".props";
-    options.folderName = "SoundRave/" + productName;
-    options.osxLibrarySubFolder = "Application Support";
     options.commonToAllUsers = false;
-    properties = std::make_unique<juce::PropertiesFile>(options);
+    properties = std::make_unique<juce::PropertiesFile>(
+        getProductDataDirectory(productName)
+            .getChildFile(".license_state.props"),
+        options);
+
+#if JUCE_MAC
+    if (!properties->containsKey(trialStartKey))
+    {
+        juce::PropertiesFile::Options legacyOptions;
+        legacyOptions.doNotSave = true;
+        const juce::PropertiesFile legacyProperties(
+            getLegacyProductDataDirectory(productName)
+                .getChildFile("license_state.props"),
+            legacyOptions);
+        if (legacyProperties.containsKey(trialStartKey))
+            properties->setValue(
+                trialStartKey,
+                legacyProperties.getValue(trialStartKey));
+        if (legacyProperties.containsKey(trialLastSeenKey))
+            properties->setValue(
+                trialLastSeenKey,
+                legacyProperties.getValue(trialLastSeenKey));
+    }
+#endif
 
     if (sodium_init() < 0)
     {
@@ -73,6 +106,13 @@ void LicenseManager::initialise(const juce::String& requestedProduct, int reques
         const auto file = getDefaultLicenseFile(candidate);
         if (file.existsAsFile() && loadFromFile(file, &acceptedProducts))
             return;
+#if JUCE_MAC
+        const auto legacyFile = getLegacyProductDataDirectory(candidate)
+            .getChildFile(candidate + ".soundravelicense");
+        if (legacyFile.existsAsFile()
+            && loadFromFile(legacyFile, &acceptedProducts))
+            return;
+#endif
     }
 
     initialiseTrial();
@@ -264,7 +304,9 @@ juce::File LicenseManager::getProductDataDirectory(const juce::String& product)
 {
 #if JUCE_MAC
     auto base = juce::File::getSpecialLocation(juce::File::userHomeDirectory)
-                    .getChildFile("Library").getChildFile("Application Support");
+                    .getChildFile("Library")
+                    .getChildFile("Audio")
+                    .getChildFile("Presets");
 #elif JUCE_WINDOWS
     auto base = juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory);
 #else

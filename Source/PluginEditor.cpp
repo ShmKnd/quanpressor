@@ -15,6 +15,9 @@ namespace
     constexpr float kFetAttackMinimumLabelSourceX = 39.6f;
     constexpr float kNormalAttackMinimumLabelSourceX = 27.3f;
     constexpr float kAttackScaleTop = 420.0f;
+    constexpr int kUserPresetMenuIdBase = 1001;
+    constexpr int kSaveUserPresetMenuId = 9001;
+    constexpr int kDeleteUserPresetMenuId = 9002;
 
     const std::array<juce::Rectangle<int>, 2> kMeterPrivacyBaseBounds {{
         { 545, 75, 444, 132 },
@@ -257,6 +260,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.)LIC";
             case Kind::NoMeter:     return on ? noMeterOn : noMeter;
             case Kind::Os2:         return on ? os2On : os2;
             case Kind::Os4:         return on ? os4On : os4;
+            case Kind::ExternalSidechain: return on ? scFilterOn : scFilter;
             case Kind::Fet:
             default:                return on ? fetOn : fet;
         }
@@ -452,6 +456,96 @@ void QuanpressorAudioProcessorEditor::TooltipLookAndFeel::drawBubble(
     g.drawRect(body, 1.0f);
 }
 
+QuanpressorAudioProcessorEditor::PresetLookAndFeel::PresetLookAndFeel()
+{
+    setColour(juce::ComboBox::backgroundColourId, juce::Colour(0xff242628));
+    setColour(juce::ComboBox::textColourId, juce::Colour(0xffd6d3ce));
+    setColour(juce::ComboBox::outlineColourId, juce::Colour(0xff5b5d60));
+    setColour(juce::ComboBox::arrowColourId, juce::Colour(0xffaaa9a6));
+    setColour(juce::PopupMenu::backgroundColourId, juce::Colour(0xff25272a));
+    setColour(juce::PopupMenu::textColourId, juce::Colour(0xffe0ddd8));
+    setColour(juce::PopupMenu::highlightedBackgroundColourId, juce::Colour(0xff53565a));
+    setColour(juce::PopupMenu::highlightedTextColourId, juce::Colours::white);
+}
+
+void QuanpressorAudioProcessorEditor::PresetLookAndFeel::drawComboBox(
+    juce::Graphics& g, int width, int height, bool isButtonDown,
+    int buttonX, int buttonY, int buttonWidth, int buttonHeight,
+    juce::ComboBox& box)
+{
+    juce::ignoreUnused(buttonY, buttonWidth, buttonHeight);
+    const auto area = juce::Rectangle<float>(0.0f, 0.0f,
+                                             static_cast<float>(width),
+                                             static_cast<float>(height));
+    juce::ColourGradient background(
+        juce::Colour(isButtonDown ? 0xff171819 : 0xff2e3032),
+        0.0f, 0.0f,
+        juce::Colour(0xff1f2022),
+        0.0f, static_cast<float>(height), false);
+    g.setGradientFill(background);
+    g.fillRect(area);
+    g.setColour(box.findColour(juce::ComboBox::outlineColourId));
+    g.drawRect(area.reduced(0.5f), 1.0f);
+    g.drawVerticalLine(buttonX, 1.0f, static_cast<float>(height - 1));
+
+    const auto arrowArea = juce::Rectangle<float>(
+        static_cast<float>(buttonX), 0.0f,
+        static_cast<float>(width - buttonX), static_cast<float>(height));
+    juce::Path arrow;
+    arrow.addTriangle(arrowArea.getCentreX() - 5.0f,
+                      arrowArea.getCentreY() - 2.5f,
+                      arrowArea.getCentreX() + 5.0f,
+                      arrowArea.getCentreY() - 2.5f,
+                      arrowArea.getCentreX(),
+                      arrowArea.getCentreY() + 3.5f);
+    g.setColour(box.findColour(juce::ComboBox::arrowColourId)
+                    .withAlpha(box.isEnabled() ? 0.9f : 0.3f));
+    g.fillPath(arrow);
+}
+
+juce::Font QuanpressorAudioProcessorEditor::PresetLookAndFeel::getComboBoxFont(
+    juce::ComboBox& box)
+{
+    return juce::Font(juce::FontOptions(
+        juce::jmin(18.0f, static_cast<float>(box.getHeight()) * 0.62f)));
+}
+
+void QuanpressorAudioProcessorEditor::PresetLookAndFeel::positionComboBoxText(
+    juce::ComboBox& box, juce::Label& label)
+{
+    label.setBounds(14, 1, juce::jmax(1, box.getWidth() - 52),
+                    juce::jmax(1, box.getHeight() - 2));
+    label.setFont(getComboBoxFont(box));
+    label.setJustificationType(juce::Justification::centredLeft);
+}
+
+void QuanpressorAudioProcessorEditor::PresetArrowButton::paintButton(
+    juce::Graphics& g, bool highlighted, bool down)
+{
+    auto area = getLocalBounds().toFloat();
+    if (down)
+        area.translate(0.0f, 1.0f);
+
+    g.setColour(juce::Colour(0xff242628)
+                    .withAlpha(highlighted ? 0.92f : 0.64f));
+    g.fillRect(area);
+    g.setColour(juce::Colour(0xff5b5d60));
+    g.drawRect(area.reduced(0.5f), 1.0f);
+
+    const float direction = pointsRight ? 1.0f : -1.0f;
+    const auto centre = area.getCentre();
+    juce::Path arrow;
+    arrow.addTriangle(centre.x + 4.0f * direction,
+                      centre.y,
+                      centre.x - 3.0f * direction,
+                      centre.y - 6.0f,
+                      centre.x - 3.0f * direction,
+                      centre.y + 6.0f);
+    g.setColour(juce::Colour(0xffd1cfca)
+                    .withAlpha(isEnabled() ? (highlighted ? 1.0f : 0.78f) : 0.28f));
+    g.fillPath(arrow);
+}
+
 void QuanpressorAudioProcessorEditor::Knob::paint(juce::Graphics& g)
 {
     auto area = getLocalBounds().toFloat();
@@ -542,6 +636,31 @@ void QuanpressorAudioProcessorEditor::ImageButton::paintButton(juce::Graphics& g
 {
     const bool momentary = kind == Kind::ResetPhotocell;
     const bool on = momentary ? down : getToggleState();
+    if (kind == Kind::ExternalSidechain)
+    {
+        auto area = getLocalBounds().toFloat().reduced(0.5f);
+        if (down)
+            area.translate(0.0f, 1.0f);
+
+        const auto activeColour = juce::Colour(0xff16bda9);
+        juce::ColourGradient background(
+            on ? juce::Colour(0xff23655d) : juce::Colour(0xff5f6061),
+            0.0f, area.getY(),
+            on ? juce::Colour(0xff183e39) : juce::Colour(0xff343536),
+            0.0f, area.getBottom(), false);
+        g.setGradientFill(background);
+        g.fillRect(area);
+        g.setColour(on ? activeColour : juce::Colour(0xff8b8d90));
+        g.drawRect(area, highlighted ? 1.4f : 0.8f);
+        g.setColour(on ? juce::Colours::white
+                       : juce::Colour(0xffe0e0de));
+        g.setFont(juce::Font(juce::FontOptions(
+            14.0f, juce::Font::bold)));
+        g.drawText("EXT SC", getLocalBounds(),
+                   juce::Justification::centred, false);
+        return;
+    }
+
     const auto& img = buttonImage(kind, on);
     auto area = getLocalBounds().toFloat();
     if (down)
@@ -574,7 +693,7 @@ void QuanpressorAudioProcessorEditor::InfoButton::paintButton(juce::Graphics& g,
     g.fillRoundedRectangle(area, 4.0f);
     g.setColour(gold.withAlpha(highlighted ? 1.0f : 0.78f));
     g.drawRoundedRectangle(area, 4.0f, highlighted ? 1.3f : 0.9f);
-    g.setFont(juce::Font(juce::FontOptions(11.0f, juce::Font::bold)));
+    g.setFont(juce::Font(juce::FontOptions(14.0f, juce::Font::bold)));
     g.drawText("INFO", getLocalBounds(), juce::Justification::centred);
 }
 
@@ -611,6 +730,26 @@ QuanpressorAudioProcessorEditor::QuanpressorAudioProcessorEditor(QuanpressorAudi
     tooltipWindow.setLookAndFeel(&tooltipLookAndFeel);
     updateLicenseLayout();
 
+    presetMenu.setLookAndFeel(&presetLookAndFeel);
+    presetMenu.setJustificationType(juce::Justification::centredLeft);
+    presetMenu.setTooltip("Load, save or delete presets.");
+    presetMenu.setMouseCursor(juce::MouseCursor::PointingHandCursor);
+    presetMenu.onChange = [this]
+    {
+        loadPresetMenuItem(presetMenu.getSelectedId());
+    };
+    content.addAndMakeVisible(presetMenu);
+
+    previousPreset.setTooltip("Previous preset");
+    nextPreset.setTooltip("Next preset");
+    previousPreset.setMouseCursor(juce::MouseCursor::PointingHandCursor);
+    nextPreset.setMouseCursor(juce::MouseCursor::PointingHandCursor);
+    previousPreset.onClick = [this] { selectRelativePreset(-1); };
+    nextPreset.onClick = [this] { selectRelativePreset(1); };
+    content.addAndMakeVisible(previousPreset);
+    content.addAndMakeVisible(nextPreset);
+    refreshPresetMenu();
+
     mode.addItemList({ "FET", "OPTO", "VCA", "VARI-MU" }, 1);
     modeButtons[0].kind = ImageButton::Kind::Fet;
     modeButtons[1].kind = ImageButton::Kind::Opto;
@@ -620,6 +759,7 @@ QuanpressorAudioProcessorEditor::QuanpressorAudioProcessorEditor(QuanpressorAudi
     autoRelease.kind = ImageButton::Kind::AutoRelease;
     autoLevel.kind = ImageButton::Kind::AutoGain;
     stereoChain.kind = ImageButton::Kind::StChain;
+    externalSidechain.kind = ImageButton::Kind::ExternalSidechain;
     sidechainHpf.kind = ImageButton::Kind::ScFilter;
     optoReset.kind = ImageButton::Kind::ResetPhotocell;
     vuModeButtons[0].kind = ImageButton::Kind::VuOutput;
@@ -643,7 +783,8 @@ QuanpressorAudioProcessorEditor::QuanpressorAudioProcessorEditor(QuanpressorAudi
         content.addAndMakeVisible(vuModeButtons[static_cast<size_t>(i)]);
     }
 
-    for (auto* button : { &autoLevel, &autoRelease, &grMatch, &sidechainHpf, &stereoChain, &noMeter })
+    for (auto* button : { &autoLevel, &autoRelease, &grMatch, &externalSidechain,
+                          &sidechainHpf, &stereoChain, &noMeter })
         button->setClickingTogglesState(true);
     content.addAndMakeVisible(noMeter);
 
@@ -699,7 +840,8 @@ QuanpressorAudioProcessorEditor::QuanpressorAudioProcessorEditor(QuanpressorAudi
     mix.colourway = Knob::Colourway::Grey;
 
     for (auto* c : { static_cast<juce::Component*>(&autoLevel), static_cast<juce::Component*>(&autoRelease),
-                     static_cast<juce::Component*>(&grMatch), static_cast<juce::Component*>(&sidechainHpf),
+                     static_cast<juce::Component*>(&grMatch), static_cast<juce::Component*>(&externalSidechain),
+                     static_cast<juce::Component*>(&sidechainHpf),
                      static_cast<juce::Component*>(&stereoChain), static_cast<juce::Component*>(&optoReset),
                      static_cast<juce::Component*>(&inMeter), static_cast<juce::Component*>(&outMeter),
                      static_cast<juce::Component*>(&grMeter),
@@ -713,6 +855,7 @@ QuanpressorAudioProcessorEditor::QuanpressorAudioProcessorEditor(QuanpressorAudi
     ba.push_back(std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(proc.apvts, "autoLevel", autoLevel));
     ba.push_back(std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(proc.apvts, "autoRelease", autoRelease));
     ba.push_back(std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(proc.apvts, "grMatch", grMatch));
+    ba.push_back(std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(proc.apvts, "externalSidechain", externalSidechain));
     ba.push_back(std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(proc.apvts, "sidechainHpf", sidechainHpf));
     ba.push_back(std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(proc.apvts, "stereoChain", stereoChain));
     ba.push_back(std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(proc.apvts, "noMeter", noMeter));
@@ -732,6 +875,7 @@ QuanpressorAudioProcessorEditor::QuanpressorAudioProcessorEditor(QuanpressorAudi
     autoRelease.setTooltip("Auto Release\nAutomatically adjusts release time based on the input signal.");
     grMatch.setTooltip("Matches the amount of gain reduction across compressor types.");
     stereoChain.setTooltip("ST LINK\nLinks the left and right channels for stereo compression.");
+    externalSidechain.setTooltip("EXT SC\nUses the host sidechain input as the compression detector.");
     sidechainHpf.setTooltip("SC FILTER\nHigh-pass filters the sidechain to reduce low-frequency triggering.");
     oversampling2x.setTooltip("Oversampling x2\nRuns nonlinear compression stages at 2x sample rate.");
     oversampling4x.setTooltip("Oversampling x4\nRuns nonlinear compression stages at 4x sample rate.");
@@ -775,6 +919,7 @@ QuanpressorAudioProcessorEditor::~QuanpressorAudioProcessorEditor()
 {
     stopTimer();
     tooltipWindow.setLookAndFeel(nullptr);
+    presetMenu.setLookAndFeel(nullptr);
     for (auto& renderer : meterPrivacyRenderers)
         if (renderer != nullptr)
             renderer->shutdown();
@@ -824,6 +969,10 @@ void QuanpressorAudioProcessorEditor::resized()
     output.setBounds(1270, 676, 65, 65);
     oversampling2x.setBounds(1250, 777, 49, 22);
     oversampling4x.setBounds(1304, 777, 49, 22);
+    previousPreset.setBounds(410, 20, 25, 36);
+    nextPreset.setBounds(438, 20, 25, 36);
+    presetMenu.setBounds(466, 20, 500, 36);
+    externalSidechain.setBounds(1061, 24, 94, 28);
     infoButton.setBounds(1250, 24, 78, 28);
 
     placeButton(modeButtons[0], 133, 109, 94, 44);
@@ -985,6 +1134,275 @@ void QuanpressorAudioProcessorEditor::setOversamplingFromButton(int factor)
     oversampling4x.setToggleState(shouldEnable && factor == 4, juce::dontSendNotification);
 }
 
+void QuanpressorAudioProcessorEditor::refreshPresetMenu()
+{
+    presetMenu.clear(juce::dontSendNotification);
+    auto* rootMenu = presetMenu.getRootMenu();
+    if (rootMenu == nullptr)
+        return;
+
+    rootMenu->addItem(1, quanpressorFactoryPresets[0].name, true,
+                      selectedPresetMenuId == 1);
+    rootMenu->addSeparator();
+
+    for (int categoryIndex = 0;
+         categoryIndex < static_cast<int>(quanpressorPresetCategoryNames.size());
+         ++categoryIndex)
+    {
+        juce::PopupMenu categoryMenu;
+        for (int presetIndex = 1;
+             presetIndex < quanpressorFactoryPresetCount;
+             ++presetIndex)
+        {
+            const auto& preset = quanpressorFactoryPresets[presetIndex];
+            if (static_cast<int>(preset.category) != categoryIndex)
+                continue;
+
+            const int menuId = presetIndex + 1;
+            categoryMenu.addItem(menuId, preset.name, true,
+                                 selectedPresetMenuId == menuId);
+        }
+
+        if (categoryMenu.getNumItems() > 0)
+            rootMenu->addSubMenu(
+                quanpressorPresetCategoryNames[static_cast<size_t>(categoryIndex)],
+                std::move(categoryMenu));
+    }
+
+    userPresetNames = proc.getUserPresetNames();
+    if (!userPresetNames.isEmpty())
+    {
+        juce::PopupMenu userMenu;
+        for (int index = 0; index < userPresetNames.size(); ++index)
+        {
+            const int menuId = kUserPresetMenuIdBase + index;
+            userMenu.addItem(menuId, userPresetNames[index], true,
+                             selectedPresetMenuId == menuId);
+        }
+        rootMenu->addSubMenu("USER PRESETS", std::move(userMenu));
+    }
+
+    rootMenu->addSeparator();
+    rootMenu->addItem(kSaveUserPresetMenuId, "SAVE USER PRESET...");
+    const int userIndex = selectedPresetMenuId - kUserPresetMenuIdBase;
+    const bool canDelete = juce::isPositiveAndBelow(
+        userIndex, userPresetNames.size());
+    rootMenu->addItem(kDeleteUserPresetMenuId,
+                      "DELETE CURRENT USER PRESET", canDelete);
+    updatePresetDisplay();
+}
+
+void QuanpressorAudioProcessorEditor::loadPresetMenuItem(int menuId)
+{
+    if (menuId >= 1 && menuId <= quanpressorFactoryPresetCount)
+    {
+        proc.loadFactoryPreset(menuId - 1);
+        selectedPresetMenuId = menuId;
+        updatePresetDisplay();
+        return;
+    }
+
+    const int userIndex = menuId - kUserPresetMenuIdBase;
+    if (juce::isPositiveAndBelow(userIndex, userPresetNames.size()))
+    {
+        if (proc.loadUserPreset(userPresetNames[userIndex]))
+        {
+            selectedPresetMenuId = menuId;
+            updatePresetDisplay();
+        }
+        else
+        {
+            juce::AlertWindow::showAsync(
+                juce::MessageBoxOptions()
+                    .withIconType(juce::MessageBoxIconType::WarningIcon)
+                    .withTitle("Preset Load Failed")
+                    .withMessage("The selected preset could not be loaded.")
+                    .withButton("OK")
+                    .withAssociatedComponent(this),
+                nullptr);
+            refreshPresetMenu();
+        }
+        return;
+    }
+
+    presetMenu.setSelectedId(0, juce::dontSendNotification);
+    updatePresetDisplay();
+    if (menuId == kSaveUserPresetMenuId)
+        showSavePresetDialog();
+    else if (menuId == kDeleteUserPresetMenuId)
+        deleteSelectedUserPreset();
+}
+
+void QuanpressorAudioProcessorEditor::selectRelativePreset(int direction)
+{
+    std::vector<int> menuIds;
+    menuIds.reserve(static_cast<size_t>(
+        quanpressorFactoryPresetCount + userPresetNames.size()));
+    for (int presetIndex = 0;
+         presetIndex < quanpressorFactoryPresetCount;
+         ++presetIndex)
+        menuIds.push_back(presetIndex + 1);
+    for (int userIndex = 0; userIndex < userPresetNames.size(); ++userIndex)
+        menuIds.push_back(kUserPresetMenuIdBase + userIndex);
+
+    if (menuIds.empty())
+        return;
+
+    auto current = std::find(
+        menuIds.begin(), menuIds.end(), selectedPresetMenuId);
+    int index = current == menuIds.end()
+        ? (direction >= 0 ? -1 : 0)
+        : static_cast<int>(std::distance(menuIds.begin(), current));
+    const int count = static_cast<int>(menuIds.size());
+    index = (index + (direction >= 0 ? 1 : -1) + count) % count;
+    loadPresetMenuItem(menuIds[static_cast<size_t>(index)]);
+}
+
+void QuanpressorAudioProcessorEditor::showSavePresetDialog()
+{
+    auto* dialog = new juce::AlertWindow(
+        "Save User Preset",
+        "Enter a name for this preset:",
+        juce::MessageBoxIconType::NoIcon,
+        this);
+    dialog->setColour(juce::AlertWindow::backgroundColourId,
+                      juce::Colour(0xff25272a));
+    dialog->setColour(juce::AlertWindow::textColourId,
+                      juce::Colour(0xffe0ddd8));
+    dialog->setColour(juce::AlertWindow::outlineColourId,
+                      juce::Colour(0xff686b6f));
+    dialog->addTextEditor("name", "My Preset");
+    dialog->addButton("Save", 1,
+                      juce::KeyPress(juce::KeyPress::returnKey));
+    dialog->addButton("Cancel", 0,
+                      juce::KeyPress(juce::KeyPress::escapeKey));
+
+    const juce::Component::SafePointer<QuanpressorAudioProcessorEditor> safeThis(this);
+    dialog->enterModalState(
+        true,
+        juce::ModalCallbackFunction::create(
+            [safeThis, dialog](int result)
+            {
+                if (result == 1 && safeThis != nullptr)
+                    safeThis->saveUserPresetFromDialog(
+                        dialog->getTextEditorContents("name"));
+            }),
+        true);
+}
+
+void QuanpressorAudioProcessorEditor::saveUserPresetFromDialog(
+    const juce::String& requestedName)
+{
+    const auto savedName = proc.saveUserPreset(requestedName);
+    if (savedName.isEmpty())
+    {
+        juce::AlertWindow::showAsync(
+            juce::MessageBoxOptions()
+                .withIconType(juce::MessageBoxIconType::WarningIcon)
+                .withTitle("Preset Save Failed")
+                .withMessage("Enter a valid name and check that the preset folder is writable.")
+                .withButton("OK")
+                .withAssociatedComponent(this),
+            nullptr);
+        updatePresetDisplay();
+        return;
+    }
+
+    refreshPresetMenu();
+    const int userIndex = userPresetNames.indexOf(savedName);
+    selectedPresetMenuId = userIndex >= 0
+        ? kUserPresetMenuIdBase + userIndex : 0;
+    updatePresetDisplay();
+}
+
+void QuanpressorAudioProcessorEditor::deleteSelectedUserPreset()
+{
+    const int userIndex = selectedPresetMenuId - kUserPresetMenuIdBase;
+    if (!juce::isPositiveAndBelow(userIndex, userPresetNames.size()))
+        return;
+
+    const auto presetName = userPresetNames[userIndex];
+    const juce::Component::SafePointer<QuanpressorAudioProcessorEditor> safeThis(this);
+    juce::AlertWindow::showAsync(
+        juce::MessageBoxOptions()
+            .withIconType(juce::MessageBoxIconType::WarningIcon)
+            .withTitle("Delete User Preset")
+            .withMessage("Delete \"" + presetName + "\"?")
+            .withButton("Delete")
+            .withButton("Cancel")
+            .withAssociatedComponent(this),
+        [safeThis, presetName](int result)
+        {
+            if (result != 1 || safeThis == nullptr)
+                return;
+
+            if (!safeThis->proc.deleteUserPreset(presetName))
+            {
+                juce::AlertWindow::showAsync(
+                    juce::MessageBoxOptions()
+                        .withIconType(juce::MessageBoxIconType::WarningIcon)
+                        .withTitle("Preset Delete Failed")
+                        .withMessage("The selected preset could not be deleted.")
+                        .withButton("OK")
+                        .withAssociatedComponent(safeThis.getComponent()),
+                    nullptr);
+                return;
+            }
+
+            safeThis->selectedPresetMenuId = 0;
+            safeThis->refreshPresetMenu();
+        });
+}
+
+void QuanpressorAudioProcessorEditor::updatePresetDisplay()
+{
+    auto presetName = proc.getCurrentPresetName();
+    if (presetName.isEmpty())
+        presetName = "Custom";
+
+    bool selectedItemMatches = false;
+    if (selectedPresetMenuId >= 1
+        && selectedPresetMenuId <= quanpressorFactoryPresetCount)
+    {
+        selectedItemMatches = presetName
+            == quanpressorFactoryPresets[selectedPresetMenuId - 1].name;
+    }
+    else
+    {
+        const int userIndex = selectedPresetMenuId - kUserPresetMenuIdBase;
+        selectedItemMatches = juce::isPositiveAndBelow(
+            userIndex, userPresetNames.size())
+            && presetName == userPresetNames[userIndex];
+    }
+
+    if (!selectedItemMatches)
+    {
+        selectedPresetMenuId = 0;
+        for (int presetIndex = 0;
+             presetIndex < quanpressorFactoryPresetCount;
+             ++presetIndex)
+        {
+            if (presetName == quanpressorFactoryPresets[presetIndex].name)
+            {
+                selectedPresetMenuId = presetIndex + 1;
+                break;
+            }
+        }
+
+        if (selectedPresetMenuId == 0)
+        {
+            const int userIndex = userPresetNames.indexOf(presetName);
+            if (userIndex >= 0)
+                selectedPresetMenuId = kUserPresetMenuIdBase + userIndex;
+        }
+    }
+
+    displayedPresetName = presetName;
+    presetMenu.setSelectedId(selectedPresetMenuId,
+                             juce::dontSendNotification);
+    presetMenu.setText(presetName, juce::dontSendNotification);
+}
+
 void QuanpressorAudioProcessorEditor::showInfoDialog()
 {
     if (infoPanel)
@@ -1100,6 +1518,8 @@ void QuanpressorAudioProcessorEditor::timerCallback()
 {
     updateLicenseLayout();
     updateArchitectureControls();
+    if (proc.getCurrentPresetName() != displayedPresetName)
+        refreshPresetMenu();
     const int vuModeIndex = juce::jlimit(0, 2,
         static_cast<int>(proc.apvts.getRawParameterValue("vuMode")->load()));
     for (auto& vuMeter : vuMeters)

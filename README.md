@@ -7,6 +7,8 @@ Modes: FET / OPTO / VCA / VARI-MU.
 Implemented:
 - unified Threshold workflow for every mode (FET threshold maps to Patina's internal sensitivity control)
 - Input, Threshold, Ratio, Attack, Release, Knee, Makeup, Output
+- host-visible mono or stereo external sidechain input with an explicit EXT SC switch
+- factory presets plus load, save, and delete support for user presets
 - high/low spectral bleed controls
 - Auto Level Match
 - mode-switch loudness compensation
@@ -14,6 +16,10 @@ Implemented:
 - 150 ms dual-engine crossfade when switching modes
 - input/output meters, GR meter, transfer curve, and scrolling GR history
 - Vari-Mu FAST / MID / SLOW time-constant buttons
+
+On macOS, Quanpressor stores user presets, license data, and trial state under
+`~/Library/Audio/Presets/SoundRave/Quanpressor`. It does not create or update
+Quanpressor data under `~/Library/Application Support`.
 
 ## Build
 

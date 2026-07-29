@@ -82,7 +82,10 @@ namespace
 }
 
 QuanpressorAudioProcessor::QuanpressorAudioProcessor()
-: juce::AudioProcessor(juce::AudioProcessor::BusesProperties().withInput("Input",juce::AudioChannelSet::stereo(),true).withOutput("Output",juce::AudioChannelSet::stereo(),true)),
+: juce::AudioProcessor(juce::AudioProcessor::BusesProperties()
+      .withInput("Input", juce::AudioChannelSet::stereo(), true)
+      .withInput("Sidechain", juce::AudioChannelSet::stereo(), true)
+      .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
   apvts(*this,nullptr,"PARAMS",makeLayout())
 {
     LicenseManager::getInstance().initialise("Quanpressor", 14);
@@ -111,6 +114,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout QuanpressorAudioProcessor::m
     p.push_back(std::make_unique<AudioParameterBool>("autoRelease","Auto Release",false));
     p.push_back(std::make_unique<AudioParameterBool>("grMatch","GR Match",false));
     p.push_back(std::make_unique<AudioParameterBool>("noMeter","No Meter",false));
+    p.push_back(std::make_unique<AudioParameterBool>("externalSidechain","External Sidechain",false));
     p.push_back(std::make_unique<AudioParameterBool>("sidechainHpf","Sidechain HPF",false));
     p.push_back(std::make_unique<AudioParameterBool>("stereoChain","Stereo Chain",true));
     p.push_back(std::make_unique<AudioParameterBool>("oversampling","Oversampling",false));
@@ -148,13 +152,35 @@ void QuanpressorAudioProcessor::prepareToPlay(double sr,int bs)
     grMatchActive = false;
     meters.grMatching.store(false);
 }
-bool QuanpressorAudioProcessor::isBusesLayoutSupported(const juce::AudioProcessor::BusesLayout& l) const { return l.getMainInputChannelSet()==l.getMainOutputChannelSet() && (l.getMainOutputChannelSet()==juce::AudioChannelSet::mono()||l.getMainOutputChannelSet()==juce::AudioChannelSet::stereo()); }
+bool QuanpressorAudioProcessor::isBusesLayoutSupported(
+    const juce::AudioProcessor::BusesLayout& layouts) const
+{
+    const auto mainInput = layouts.getMainInputChannelSet();
+    const auto mainOutput = layouts.getMainOutputChannelSet();
+    if (mainInput != mainOutput
+        || (mainOutput != juce::AudioChannelSet::mono()
+            && mainOutput != juce::AudioChannelSet::stereo()))
+        return false;
+
+    if (layouts.inputBuses.size() < 2)
+        return true;
+
+    const auto sidechain = layouts.getChannelSet(true, 1);
+    return sidechain == juce::AudioChannelSet::disabled()
+        || sidechain == juce::AudioChannelSet::mono()
+        || sidechain == juce::AudioChannelSet::stereo();
+}
+
 void QuanpressorAudioProcessor::processBlock(juce::AudioBuffer<float>& b, juce::MidiBuffer&)
 {
     juce::ScopedNoDenormals nd;
-    const int samples = b.getNumSamples();
+    auto mainBuffer = getBusBuffer(b, false, 0);
+    const int samples = mainBuffer.getNumSamples();
+    auto sidechainBuffer = getBusBuffer(b, true, 1);
+    const auto* availableSidechain = sidechainBuffer.getNumChannels() > 0
+        ? &sidechainBuffer : nullptr;
 
-    const auto rawInputStats = calculateStereoMeterStats(b);
+    const auto rawInputStats = calculateStereoMeterStats(mainBuffer);
 
     QuanpressorDSP::Controls c;
     c.mode = static_cast<QuanpressorDSP::Mode>(static_cast<int>(*apvts.getRawParameterValue("mode")));
@@ -180,6 +206,10 @@ void QuanpressorAudioProcessor::processBlock(juce::AudioBuffer<float>& b, juce::
     c.stereoChain = *apvts.getRawParameterValue("stereoChain") > 0.5f;
     c.oversampling = *apvts.getRawParameterValue("oversampling") > 0.5f;
     c.oversamplingFactor = *apvts.getRawParameterValue("oversamplingFactor") > 0.5f ? 4 : 2;
+    const bool externalSidechainEnabled =
+        *apvts.getRawParameterValue("externalSidechain") > 0.5f;
+    const auto* externalSidechain = externalSidechainEnabled
+        ? availableSidechain : nullptr;
 
     const float inputGainLinear = juce::Decibels::decibelsToGain(c.inputDb);
     // Each INPUT VU follows its channel after INPUT GAIN. Mono buses duplicate
@@ -201,15 +231,29 @@ void QuanpressorAudioProcessor::processBlock(juce::AudioBuffer<float>& b, juce::
                              samples, getSampleRate(), 0.008f, 0.140f);
     }
     const float linkedInputPeakTargetDb = juce::jmax(inputPeakTargetDb[0], inputPeakTargetDb[1]);
+    float detectorInputPeakTargetDb = linkedInputPeakTargetDb;
+    if (externalSidechain != nullptr)
     {
-        if (grMatchInputLevelDb <= -99.0f && linkedInputPeakTargetDb > -99.0f)
-            grMatchInputLevelDb = linkedInputPeakTargetDb;
+        const auto sidechainStats = calculateStereoMeterStats(
+            *externalSidechain);
+        const float sidechainPeak = juce::jmax(
+            sidechainStats[0].peak, sidechainStats[1].peak);
+        detectorInputPeakTargetDb = juce::Decibels::gainToDecibels(
+            sidechainPeak, -100.0f);
+    }
+    {
+        if (grMatchInputLevelDb <= -99.0f
+            && detectorInputPeakTargetDb > -99.0f)
+            grMatchInputLevelDb = detectorInputPeakTargetDb;
         else
         {
-            const float timeSeconds = linkedInputPeakTargetDb > grMatchInputLevelDb ? 0.20f : 1.00f;
+            const float timeSeconds =
+                detectorInputPeakTargetDb > grMatchInputLevelDb
+                    ? 0.20f : 1.00f;
             const float alpha = 1.0f - std::exp(-static_cast<float>(samples)
                                               / static_cast<float>(getSampleRate() * timeSeconds));
-            grMatchInputLevelDb += alpha * (linkedInputPeakTargetDb - grMatchInputLevelDb);
+            grMatchInputLevelDb += alpha
+                * (detectorInputPeakTargetDb - grMatchInputLevelDb);
         }
     }
     for (size_t ch = 0; ch < inputRmsBallisticDb.size(); ++ch)
@@ -253,9 +297,9 @@ void QuanpressorAudioProcessor::processBlock(juce::AudioBuffer<float>& b, juce::
     // GR Match is managed here by moving the public Threshold parameter. The DSP
     // receives no hidden matching offset.
     c.grMatch = false;
-    dsp.process(b, c);
+    dsp.process(mainBuffer, c, externalSidechain);
 
-    const auto outputStats = calculateStereoMeterStats(b);
+    const auto outputStats = calculateStereoMeterStats(mainBuffer);
 
     for (size_t ch = 0; ch < outputPeakBallisticDb.size(); ++ch)
     {
@@ -335,9 +379,11 @@ void QuanpressorAudioProcessor::processBlock(juce::AudioBuffer<float>& b, juce::
 
     previousGrMatchMode = requestedMode;
 
-    // The graph spot and INPUT peak meter describe the same post-input-gain
-    // signal. Sharing the ballistic value avoids architecture-dependent jumps.
-    graphDetectorDb = juce::jmax(inputPeakBallisticDb[0], inputPeakBallisticDb[1]);
+    // The graph follows the active detector source. INPUT meters continue to
+    // show the main signal even when an external sidechain is connected.
+    graphDetectorDb = externalSidechain != nullptr
+        ? detectorInputPeakTargetDb
+        : juce::jmax(inputPeakBallisticDb[0], inputPeakBallisticDb[1]);
     meters.graphInputDb.store(graphDetectorDb);
 
     // Each OUTPUT VU measures its final host-output channel after every DSP,
@@ -357,7 +403,7 @@ void QuanpressorAudioProcessor::processBlock(juce::AudioBuffer<float>& b, juce::
         historyCounter = 0;
     }
 
-    AudioRestrictor::apply(b, getSampleRate());
+    AudioRestrictor::apply(mainBuffer, getSampleRate());
 }
 void QuanpressorAudioProcessor::handleAsyncUpdate()
 {
@@ -421,14 +467,222 @@ void QuanpressorAudioProcessor::parameterChanged(const juce::String& parameterId
         triggerAsyncUpdate();
     }
 }
-void QuanpressorAudioProcessor::getStateInformation(juce::MemoryBlock& d){ auto x=apvts.copyState().createXml(); copyXmlToBinary(*x,d); }
+
+int QuanpressorAudioProcessor::getCurrentProgram()
+{
+    return juce::jlimit(
+        0, quanpressorFactoryPresetCount - 1,
+        currentProgramIndex.load(std::memory_order_relaxed));
+}
+
+void QuanpressorAudioProcessor::setCurrentProgram(int index)
+{
+    loadFactoryPreset(index);
+}
+
+const juce::String QuanpressorAudioProcessor::getProgramName(int index)
+{
+    if (index >= 0 && index < quanpressorFactoryPresetCount)
+        return quanpressorFactoryPresets[index].name;
+    return {};
+}
+
+void QuanpressorAudioProcessor::loadFactoryPreset(int index)
+{
+    if (index < 0 || index >= quanpressorFactoryPresetCount)
+        return;
+
+    static constexpr std::array<const char*, 4> persistentParameterIds {{
+        "vuMode", "noMeter", "oversampling", "oversamplingFactor"
+    }};
+    const auto shouldPreserve = [](const juce::String& parameterId)
+    {
+        for (const auto* persistentId : persistentParameterIds)
+            if (parameterId == persistentId)
+                return true;
+        return false;
+    };
+
+    restoringState.store(true, std::memory_order_release);
+    for (auto* parameter : getParameters())
+    {
+        if (auto* ranged = dynamic_cast<juce::RangedAudioParameter*>(parameter);
+            ranged != nullptr && !shouldPreserve(ranged->getParameterID()))
+        {
+            ranged->setValueNotifyingHost(ranged->getDefaultValue());
+        }
+    }
+
+    const auto& preset = quanpressorFactoryPresets[index];
+    for (int valueIndex = 0; valueIndex < preset.valueCount; ++valueIndex)
+    {
+        const auto& value = preset.values[valueIndex];
+        if (auto* parameter = apvts.getParameter(value.parameterId))
+            parameter->setValueNotifyingHost(
+                parameter->convertTo0to1(value.value));
+    }
+    restoringState.store(false, std::memory_order_release);
+
+    currentProgramIndex.store(index, std::memory_order_relaxed);
+    const juce::ScopedLock lock(presetStateLock);
+    currentPresetName = preset.name;
+}
+
+juce::String QuanpressorAudioProcessor::makeSafePresetName(
+    const juce::String& requestedName)
+{
+    auto name = requestedName.trim();
+    if (name.endsWithIgnoreCase(".xml"))
+        name = name.dropLastCharacters(4);
+    return juce::File::createLegalFileName(name).trim();
+}
+
+juce::File QuanpressorAudioProcessor::getUserPresetDirectory() const
+{
+#if JUCE_MAC
+    return juce::File::getSpecialLocation(
+               juce::File::userHomeDirectory)
+        .getChildFile("Library")
+        .getChildFile("Audio")
+        .getChildFile("Presets")
+        .getChildFile("SoundRave")
+        .getChildFile("Quanpressor");
+#else
+    return juce::File::getSpecialLocation(
+               juce::File::userApplicationDataDirectory)
+        .getChildFile("SoundRave")
+        .getChildFile("Quanpressor")
+        .getChildFile("Presets");
+#endif
+}
+
+juce::File QuanpressorAudioProcessor::getUserPresetFile(
+    const juce::String& name) const
+{
+    return getUserPresetDirectory().getChildFile(
+        makeSafePresetName(name) + ".xml");
+}
+
+juce::StringArray QuanpressorAudioProcessor::getUserPresetNames() const
+{
+    juce::StringArray names;
+    const auto directory = getUserPresetDirectory();
+    if (!directory.isDirectory())
+        return names;
+
+    const auto files = directory.findChildFiles(
+        juce::File::findFiles, false, "*.xml");
+    for (const auto& file : files)
+        names.add(file.getFileNameWithoutExtension());
+    names.sort(true);
+    return names;
+}
+
+juce::String QuanpressorAudioProcessor::saveUserPreset(
+    const juce::String& requestedName)
+{
+    const auto name = makeSafePresetName(requestedName);
+    if (name.isEmpty())
+        return {};
+
+    const auto directory = getUserPresetDirectory();
+    if (!directory.isDirectory() && !directory.createDirectory())
+        return {};
+
+    auto state = apvts.copyState();
+    state.setProperty("presetName", name, nullptr);
+    state.setProperty("programIndex", 0, nullptr);
+    const auto xml = state.createXml();
+    if (xml == nullptr || !xml->writeTo(getUserPresetFile(name)))
+        return {};
+
+    currentProgramIndex.store(0, std::memory_order_relaxed);
+    const juce::ScopedLock lock(presetStateLock);
+    currentPresetName = name;
+    return name;
+}
+
+bool QuanpressorAudioProcessor::loadUserPreset(const juce::String& requestedName)
+{
+    const auto name = makeSafePresetName(requestedName);
+    const auto file = getUserPresetFile(name);
+    if (name.isEmpty() || !file.existsAsFile())
+        return false;
+
+    const auto xml = juce::XmlDocument::parse(file);
+    if (xml == nullptr)
+        return false;
+
+    const auto state = juce::ValueTree::fromXml(*xml);
+    if (!state.isValid() || state.getType() != apvts.state.getType())
+        return false;
+
+    restoringState.store(true, std::memory_order_release);
+    apvts.replaceState(state);
+    restoringState.store(false, std::memory_order_release);
+    currentProgramIndex.store(0, std::memory_order_relaxed);
+    const juce::ScopedLock lock(presetStateLock);
+    currentPresetName = name;
+    return true;
+}
+
+bool QuanpressorAudioProcessor::deleteUserPreset(const juce::String& requestedName)
+{
+    const auto name = makeSafePresetName(requestedName);
+    if (name.isEmpty())
+        return false;
+
+    const auto file = getUserPresetFile(name);
+    if (!file.existsAsFile() || !file.deleteFile())
+        return false;
+
+    const juce::ScopedLock lock(presetStateLock);
+    if (currentPresetName == name)
+        currentPresetName = "Custom";
+    return true;
+}
+
+juce::String QuanpressorAudioProcessor::getCurrentPresetName() const
+{
+    const juce::ScopedLock lock(presetStateLock);
+    return currentPresetName;
+}
+
+void QuanpressorAudioProcessor::getStateInformation(juce::MemoryBlock& d)
+{
+    auto state = apvts.copyState();
+    {
+        const juce::ScopedLock lock(presetStateLock);
+        state.setProperty("presetName", currentPresetName, nullptr);
+    }
+    state.setProperty(
+        "programIndex",
+        currentProgramIndex.load(std::memory_order_relaxed),
+        nullptr);
+    if (auto xml = state.createXml())
+        copyXmlToBinary(*xml, d);
+}
+
 void QuanpressorAudioProcessor::setStateInformation(const void* d,int n)
 {
     if (auto x = getXmlFromBinary(d,n))
     {
+        auto state = juce::ValueTree::fromXml(*x);
+        if (!state.isValid() || state.getType() != apvts.state.getType())
+            return;
+
+        const auto restoredPresetName = state.getProperty(
+            "presetName", "Custom").toString();
+        const int restoredProgramIndex = juce::jlimit(
+            0, quanpressorFactoryPresetCount - 1,
+            static_cast<int>(state.getProperty("programIndex", 0)));
         restoringState.store(true, std::memory_order_release);
-        apvts.replaceState(juce::ValueTree::fromXml(*x));
+        apvts.replaceState(state);
         restoringState.store(false, std::memory_order_release);
+        currentProgramIndex.store(
+            restoredProgramIndex, std::memory_order_relaxed);
+        const juce::ScopedLock lock(presetStateLock);
+        currentPresetName = restoredPresetName;
     }
 }
 juce::AudioProcessorEditor* QuanpressorAudioProcessor::createEditor(){ return new QuanpressorAudioProcessorEditor(*this); }

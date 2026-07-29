@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(Quanpressor VERSION 0.1.0)
+project(Quanpressor VERSION 1.0.1)
 
 include(FetchContent)
 FetchContent_Declare(JUCE GIT_REPOSITORY https://github.com/juce-framework/JUCE.git GIT_TAG 8.0.6)
@@ -19,7 +19,7 @@ endif()
 juce_add_plugin(Quanpressor
     COMPANY_NAME SoundRave
     BUNDLE_ID org.soundrave.quanpressor
-    PLUGIN_MANUFACTURER_CODE SdRv
+    PLUGIN_MANUFACTURER_CODE SRav
     PLUGIN_CODE QnPr
     FORMATS AU VST3 Standalone
     PRODUCT_NAME "Quanpressor"
@@ -33,7 +33,7 @@ target_sources(Quanpressor PRIVATE
     Source/PluginProcessor.cpp Source/PluginProcessor.h
     Source/PluginEditor.cpp Source/PluginEditor.h Source/QuanpressorInfoOverlay.h
     Source/MeterPrivacyRenderer.cpp Source/MeterPrivacyRenderer.h
-    Source/QuanpressorDSP.h Source/Metering.h
+    Source/QuanpressorDSP.h Source/QuanpressorFactoryPresets.h Source/Metering.h
     Source/license/LicenseManager.cpp Source/license/LicenseManager.h
     Source/license/LicenseComponent.h Source/license/AudioRestrictor.h
     JuceLibraryCode/BinaryData.cpp JuceLibraryCode/BinaryData2.cpp
