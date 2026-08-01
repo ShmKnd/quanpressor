@@ -6,6 +6,11 @@ Builds/*/build/
 cmake-build-*/
 build/
 
+# Projucer-generated iOS project and AUv3 metadata
+Builds/iOS/
+Builds/MacOSX/AUv3_AppExtension.entitlements
+Builds/MacOSX/Info-AUv3_AppExtension.plist
+
 # IDE user state
 **/xcuserdata/
 **/*.xcuserstate

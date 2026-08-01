@@ -32,9 +32,24 @@ CMake fetches JUCE 8.0.6. Patina is vendored under `Patina/`.
 
 ## Licensing
 
-Quanpressor verifies signed SoundRave license files with libsodium. An
-unlicensed installation runs as a 14-day trial; after the trial, periodic
-low-level noise is added until a valid `*.soundravelicense` file is loaded.
+On macOS and Windows, Quanpressor verifies signed SoundRave license files with
+libsodium. An unlicensed installation runs as a 14-day trial; after the trial,
+periodic low-level noise is added until a valid `*.soundravelicense` file is
+loaded.
+
+On iOS and iPadOS, the standalone app uses StoreKit 2 and the non-consumable
+product `com.SoundRave.Quanpressor.full`. The standalone app is the only target
+that can purchase or restore. The AUv3 extension reads the verified entitlement
+and demo state through App Group `group.com.SoundRave.Quanpressor`.
+
+The local StoreKit configuration is
+`StoreKit/Quanpressor.storekit`. Select it under the standalone iOS scheme's
+Run > Options > StoreKit Configuration setting when testing purchase, cancel,
+restore, pending, and failure flows.
+
+The initial iOS IAP release is version 1.0.1. Because no paid iOS version was
+released before it, legacy paid-app migration is disabled with a cutoff of
+`0.0.0`.
 
 libsodium is distributed under the ISC License. Copyright (c) 2013-2026 Frank
 Denis. Permission to use, copy, modify, and/or distribute the software for any

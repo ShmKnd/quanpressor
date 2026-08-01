@@ -2,6 +2,7 @@
 #include "PluginEditor.h"
 #include "license/AudioRestrictor.h"
 #include "license/LicenseManager.h"
+#include "iap/IAPProductConfig.h"
 
 namespace
 {
@@ -88,7 +89,7 @@ QuanpressorAudioProcessor::QuanpressorAudioProcessor()
       .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
   apvts(*this,nullptr,"PARAMS",makeLayout())
 {
-    LicenseManager::getInstance().initialise("Quanpressor", 14);
+    LicenseManager::getInstance().initialise(soundrave::iap::product_config::productName, 14);
     apvts.addParameterListener("threshold", this);
 }
 

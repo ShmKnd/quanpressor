@@ -8,7 +8,14 @@ class AudioRestrictor final
 public:
     static void apply(juce::AudioBuffer<float>& buffer, double sampleRate) noexcept
     {
-        if (!LicenseManager::getInstance().isAudioRestricted() || sampleRate <= 0.0)
+        if (!LicenseManager::getInstance().isAudioRestricted())
+            return;
+
+#if JUCE_IOS
+        juce::ignoreUnused(sampleRate);
+        buffer.clear();
+#else
+        if (sampleRate <= 0.0)
             return;
 
         const auto interval = static_cast<juce::int64>(sampleRate * 30.0);
@@ -25,5 +32,6 @@ public:
             }
             ++sampleCounter;
         }
+#endif
     }
 };

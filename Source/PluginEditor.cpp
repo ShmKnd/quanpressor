@@ -1,6 +1,7 @@
 #include "PluginEditor.h"
 #include "MeterPrivacyRenderer.h"
 #include "VuScaleRenderer.h"
+#include "license/LicenseManager.h"
 #include "../JuceLibraryCode/BinaryData.h"
 #include <cmath>
 
@@ -8,8 +9,12 @@ namespace
 {
     constexpr int kBaseWidth = 1360;
     constexpr int kBaseHeight = 820;
-    constexpr float kUiScale = 0.75f;
+    constexpr float kDefaultUiScale = 0.75f;
+#if JUCE_IOS
+    constexpr int kIapBarHeight = 72;
+#else
     constexpr int kLicenseBarHeight = 36;
+#endif
     constexpr float kArtworkRasterScale = 1.5f;
     constexpr float kAttackMinimumLabelCentreX = 143.7f;
     constexpr float kFetAttackMinimumLabelSourceX = 39.6f;
@@ -24,12 +29,6 @@ namespace
         { 545, 245, 444, 543 }
     }};
     const juce::Rectangle<int> kAttackScaleBaseBounds { 117, 420, 121, 88 };
-
-    juce::Rectangle<int> scaledUiRectangle(juce::Rectangle<int> area)
-    {
-        return area.toFloat().transformedBy(juce::AffineTransform::scale(kUiScale))
-                   .getSmallestIntegerContainer();
-    }
 
     juce::Colour teal()  { return juce::Colour::fromRGB(26, 205, 184); }
     juce::Colour meterGreen() { return juce::Colour::fromRGB(38, 220, 142); }
@@ -124,7 +123,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.)LIC";
 
     juce::Image createMeterPrivacySnapshot(juce::Component& content,
                                            juce::Rectangle<int> overlayBounds,
-                                           float captureScale)
+                                           float captureScale,
+                                           float uiScale,
+                                           juce::Point<int> uiOrigin)
     {
         const int width = juce::jmax(1, juce::roundToInt(overlayBounds.getWidth() * captureScale));
         const int height = juce::jmax(1, juce::roundToInt(overlayBounds.getHeight() * captureScale));
@@ -135,17 +136,18 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.)LIC";
         // The editor background is painted by the parent, while the moving
         // meters live in content. Compose both without capturing OpenGL views.
         g.drawImage(bgImage(),
-                    juce::Rectangle<float>(-overlayBounds.getX() * captureScale,
-                                           -overlayBounds.getY() * captureScale,
-                                           kBaseWidth * kUiScale * captureScale,
-                                           kBaseHeight * kUiScale * captureScale),
+                    juce::Rectangle<float>(
+                        (uiOrigin.x - overlayBounds.getX()) * captureScale,
+                        (uiOrigin.y - overlayBounds.getY()) * captureScale,
+                        kBaseWidth * uiScale * captureScale,
+                        kBaseHeight * uiScale * captureScale),
                     juce::RectanglePlacement::stretchToFit);
 
-        const float componentScale = kUiScale * captureScale;
+        const float componentScale = uiScale * captureScale;
         const juce::AffineTransform contentToSnapshot(componentScale, 0.0f,
-                                                       -overlayBounds.getX() * captureScale,
+                                                       (uiOrigin.x - overlayBounds.getX()) * captureScale,
                                                        0.0f, componentScale,
-                                                       -overlayBounds.getY() * captureScale);
+                                                       (uiOrigin.y - overlayBounds.getY()) * captureScale);
         g.addTransform(contentToSnapshot);
         content.paintEntireComponent(g, true);
         return result;
@@ -153,6 +155,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.)LIC";
 
     juce::Image createGrMatchingForeground(juce::Rectangle<int> overlayBounds,
                                            float captureScale,
+                                           float uiScale,
                                            bool shouldDraw)
     {
         if (!shouldDraw)
@@ -163,14 +166,15 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.)LIC";
         juce::Image result(juce::Image::ARGB, width, height, true);
         juce::Graphics g(result);
 
-        const float graphHeight = scaledUiRectangle({ 545, 245, 444, 337 }).getHeight() * captureScale;
-        const float bandHeight = 27.0f * captureScale;
+        const float graphHeight = 337.0f * uiScale * captureScale;
+        const float bandHeight = 27.0f * uiScale * captureScale;
         const auto matchingArea = juce::Rectangle<float>(0.0f, graphHeight * 0.5f - bandHeight * 0.5f,
                                                          static_cast<float>(width), bandHeight);
         g.setColour(juce::Colours::black.withAlpha(0.42f));
         g.fillRect(matchingArea);
         g.setColour(juce::Colours::white.withAlpha(0.96f));
-        g.setFont(juce::FontOptions(12.0f * captureScale, juce::Font::bold));
+        g.setFont(juce::FontOptions(12.0f * uiScale * captureScale,
+                                    juce::Font::bold));
         g.drawText("GR Matching...", matchingArea, juce::Justification::centred, false);
         return result;
     }
@@ -726,6 +730,9 @@ void QuanpressorAudioProcessorEditor::addKnob(Knob& k, const char* id)
 QuanpressorAudioProcessorEditor::QuanpressorAudioProcessorEditor(QuanpressorAudioProcessor& p)
     : AudioProcessorEditor(&p), proc(p), graph(p), historyGraph(p)
 {
+#if JUCE_IOS
+    setResizable(true, false);
+#endif
     addAndMakeVisible(content);
     tooltipWindow.setLookAndFeel(&tooltipLookAndFeel);
     updateLicenseLayout();
@@ -909,6 +916,13 @@ QuanpressorAudioProcessorEditor::QuanpressorAudioProcessorEditor(QuanpressorAudi
 
     grMatchingOverlay.matching = &proc.meters.grMatching;
     addAndMakeVisible(grMatchingOverlay);
+#if JUCE_IOS
+    licenseComponent.onVisibilityChanged = [this]
+    {
+        updateLicenseLayout();
+        repaint();
+    };
+#endif
     addChildComponent(licenseComponent);
 
     updateArchitectureControls();
@@ -927,7 +941,12 @@ QuanpressorAudioProcessorEditor::~QuanpressorAudioProcessorEditor()
 
 void QuanpressorAudioProcessorEditor::paint(juce::Graphics& g)
 {
-    g.addTransform(juce::AffineTransform::scale(kUiScale));
+#if JUCE_IOS
+    g.fillAll(juce::Colour(0xff182028));
+#endif
+    g.addTransform(juce::AffineTransform::scale(currentUiScale)
+                       .translated(static_cast<float>(currentUiOrigin.x),
+                                   static_cast<float>(currentUiOrigin.y)));
     g.drawImage(bgImage(), juce::Rectangle<float>(0.0f, 0.0f, kBaseWidth, kBaseHeight),
                 juce::RectanglePlacement::stretchToFit);
     drawAttackScale(g, displayedArchitecture == QuanpressorDSP::FET);
@@ -935,14 +954,49 @@ void QuanpressorAudioProcessorEditor::paint(juce::Graphics& g)
 
 void QuanpressorAudioProcessorEditor::resized()
 {
+#if JUCE_IOS
+    const int scaledIapHeight = licenseComponent.isVisible() ? kIapBarHeight : 0;
+    const float widthScale = static_cast<float>(getWidth()) / static_cast<float>(kBaseWidth);
+    const float heightScale = static_cast<float>(
+        juce::jmax(1, getHeight() - scaledIapHeight))
+                            / static_cast<float>(kBaseHeight);
+    currentUiScale = juce::jmax(0.01f, juce::jmin(widthScale, heightScale));
+
+    const int scaledWidth = juce::roundToInt(kBaseWidth * currentUiScale);
+    const int scaledContentHeight = juce::roundToInt(kBaseHeight * currentUiScale);
+    currentUiOrigin = {
+        (getWidth() - scaledWidth) / 2,
+        (getHeight() - scaledContentHeight - scaledIapHeight) / 2
+    };
+#else
+    currentUiScale = kDefaultUiScale;
+    currentUiOrigin = {};
+    const int scaledContentHeight = juce::roundToInt(kBaseHeight * currentUiScale);
+#endif
+
     content.setBounds(0, 0, kBaseWidth, kBaseHeight);
-    content.setTransform(juce::AffineTransform::scale(kUiScale));
-    const int contentHeight = juce::roundToInt(kBaseHeight * kUiScale);
+    content.setTransform(juce::AffineTransform::scale(currentUiScale)
+                             .translated(static_cast<float>(currentUiOrigin.x),
+                                         static_cast<float>(currentUiOrigin.y)));
+#if JUCE_IOS
+    licenseComponent.setBounds(currentUiOrigin.x,
+                               currentUiOrigin.y + scaledContentHeight,
+                               scaledWidth,
+                               scaledIapHeight);
+    const int protectedWidth = juce::jlimit(80, 280, scaledWidth / 3);
+    licenseComponent.setProtectedBounds({
+        (scaledWidth - protectedWidth) / 2,
+        0,
+        protectedWidth,
+        scaledIapHeight
+    });
+#else
     licenseComponent.setBounds(
         0,
-        contentHeight,
+        scaledContentHeight,
         getWidth(),
         licenseComponent.isVisible() ? kLicenseBarHeight : 0);
+#endif
     licenseComponent.toFront(false);
     if (infoPanel)
     {
@@ -1010,8 +1064,9 @@ void QuanpressorAudioProcessorEditor::resized()
 
     for (size_t i = 0; i < meterPrivacyRenderers.size(); ++i)
         if (meterPrivacyRenderers[i] != nullptr)
-            meterPrivacyRenderers[i]->getView().setBounds(scaledUiRectangle(kMeterPrivacyBaseBounds[i]));
-    grMatchingOverlay.setBounds(scaledUiRectangle({ 545, 245, 444, 337 }));
+            meterPrivacyRenderers[i]->getView().setBounds(
+                scaledUiBounds(kMeterPrivacyBaseBounds[i]));
+    grMatchingOverlay.setBounds(scaledUiBounds({ 545, 245, 444, 337 }));
 
     placeKnob(highFreq, 1020, 188);
     placeKnob(highAmt, 1140, 188);
@@ -1080,7 +1135,7 @@ void QuanpressorAudioProcessorEditor::updateArchitectureControls()
             : juce::String());
 
     if (architectureChanged)
-        repaint(scaledUiRectangle(kAttackScaleBaseBounds));
+        repaint(scaledUiBounds(kAttackScaleBaseBounds));
 }
 
 void QuanpressorAudioProcessorEditor::setModeFromButton(int index)
@@ -1447,12 +1502,44 @@ void QuanpressorAudioProcessorEditor::closeInfoPanel()
 
 void QuanpressorAudioProcessorEditor::updateLicenseLayout()
 {
-    const int contentWidth = juce::roundToInt(kBaseWidth * kUiScale);
-    const int contentHeight = juce::roundToInt(kBaseHeight * kUiScale);
+#if JUCE_IOS
+    const bool isLicenseVisible = licenseComponent.isVisible();
+    if (getWidth() == 0 || getHeight() == 0)
+    {
+        licenseVisibleForLayout = isLicenseVisible;
+        const int initialWidth = juce::roundToInt(kBaseWidth * kDefaultUiScale);
+        const int initialHeight = juce::roundToInt(kBaseHeight * kDefaultUiScale)
+                                + (isLicenseVisible ? kIapBarHeight : 0);
+        setSize(initialWidth, initialHeight);
+        return;
+    }
+
+    if (licenseVisibleForLayout != isLicenseVisible)
+    {
+        licenseVisibleForLayout = isLicenseVisible;
+        resized();
+        repaint();
+    }
+#else
+    const int contentWidth = juce::roundToInt(kBaseWidth * kDefaultUiScale);
+    const int contentHeight = juce::roundToInt(kBaseHeight * kDefaultUiScale);
+    const int licenseHeight = licenseComponent.isVisible()
+        ? kLicenseBarHeight : 0;
     const int targetHeight = contentHeight
-        + (licenseComponent.isVisible() ? kLicenseBarHeight : 0);
+        + licenseHeight;
     if (getWidth() != contentWidth || getHeight() != targetHeight)
         setSize(contentWidth, targetHeight);
+#endif
+}
+
+juce::Rectangle<int> QuanpressorAudioProcessorEditor::scaledUiBounds(
+    juce::Rectangle<int> bounds) const
+{
+    return bounds.toFloat()
+        .transformedBy(juce::AffineTransform::scale(currentUiScale)
+                           .translated(static_cast<float>(currentUiOrigin.x),
+                                       static_cast<float>(currentUiOrigin.y)))
+        .getSmallestIntegerContainer();
 }
 
 void QuanpressorAudioProcessorEditor::updateMeterPrivacy(bool shouldBeEnabled, bool forceCapture)
@@ -1482,21 +1569,24 @@ void QuanpressorAudioProcessorEditor::updateMeterPrivacy(bool shouldBeEnabled, b
                 continue;
 
             auto& view = renderer->getView();
-            const auto overlayBounds = scaledUiRectangle(kMeterPrivacyBaseBounds[i]);
+            const auto overlayBounds = scaledUiBounds(kMeterPrivacyBaseBounds[i]);
             if (view.getBounds() != overlayBounds)
                 view.setBounds(overlayBounds);
 
             // The renderer views are siblings of content, so this captures only
             // the native meters and never the previous blurred OpenGL frame.
-            const auto source = createMeterPrivacySnapshot(content, overlayBounds, captureScale);
+            const auto source = createMeterPrivacySnapshot(
+                content, overlayBounds, captureScale, currentUiScale, currentUiOrigin);
             MeterPrivacyRenderer::Regions localRegions {};
             localRegions[0] = juce::Rectangle<int>(0, 0, overlayBounds.getWidth(), overlayBounds.getHeight());
 
-            const float blurRadius = (i == 0 ? 28.0f : 38.0f) * captureScale;
+            const float blurRadius = (i == 0 ? 28.0f : 38.0f)
+                                   * currentUiScale * captureScale;
             const bool matchingVisible = i == 1
                 && proc.meters.grMatching.load(std::memory_order_relaxed)
                 && ((juce::Time::getMillisecondCounter() / 400u) % 2u == 0u);
-            auto foreground = createGrMatchingForeground(overlayBounds, captureScale, matchingVisible);
+            auto foreground = createGrMatchingForeground(
+                overlayBounds, captureScale, currentUiScale, matchingVisible);
 
             renderer->submitFrame(source, localRegions, blurRadius, std::move(foreground));
         }

@@ -34,6 +34,8 @@ target_sources(Quanpressor PRIVATE
     Source/PluginEditor.cpp Source/PluginEditor.h Source/QuanpressorInfoOverlay.h
     Source/MeterPrivacyRenderer.cpp Source/MeterPrivacyRenderer.h
     Source/QuanpressorDSP.h Source/QuanpressorFactoryPresets.h Source/Metering.h
+    Source/iap/IAPManager.cpp Source/iap/IAPManager.h
+    Source/iap/IAPComponent.h Source/iap/IAPProductConfig.h
     Source/license/LicenseManager.cpp Source/license/LicenseManager.h
     Source/license/LicenseComponent.h Source/license/AudioRestrictor.h
     JuceLibraryCode/BinaryData.cpp JuceLibraryCode/BinaryData2.cpp

@@ -1,5 +1,9 @@
 #include "LicenseManager.h"
+#if !JUCE_IOS
 #include <sodium.h>
+#else
+#include "../iap/IAPManager.h"
+#endif
 
 namespace
 {
@@ -18,6 +22,7 @@ juce::File getLegacyProductDataDirectory(const juce::String& product)
 }
 #endif
 
+#if !JUCE_IOS
 juce::String serialiseCanonicalJson(const juce::var& root)
 {
     auto* object = root.getDynamicObject();
@@ -47,6 +52,7 @@ juce::String serialiseCanonicalJson(const juce::var& root)
     result += "}";
     return result;
 }
+#endif
 }
 
 LicenseManager& LicenseManager::getInstance()
@@ -66,6 +72,19 @@ void LicenseManager::initialise(const juce::String& requestedProduct, int reques
         if (alias.isNotEmpty())
             acceptedProducts.addIfNotAlreadyThere(alias);
 
+#if JUCE_IOS
+    soundrave::iap::IAPManager::getInstance().initialise(productName);
+    {
+        const std::lock_guard<std::mutex> lock(mutex);
+        info = LicenseInfo {};
+        info.product = productName;
+        info.type = "ios-iap";
+        info.state = State::Unlicensed;
+    }
+    state.store(static_cast<int>(State::Unlicensed),
+                std::memory_order_release);
+    return;
+#else
     juce::PropertiesFile::Options options;
     options.applicationName = "license_state";
     options.filenameSuffix = ".props";
@@ -116,11 +135,16 @@ void LicenseManager::initialise(const juce::String& requestedProduct, int reques
     }
 
     initialiseTrial();
+#endif
 }
 
 bool LicenseManager::loadFromFile(const juce::File& file,
                                   const juce::StringArray* allowedProducts)
 {
+#if JUCE_IOS
+    juce::ignoreUnused(file, allowedProducts);
+    return false;
+#else
     const auto root = juce::JSON::parse(file.loadFileAsString());
     auto* object = root.getDynamicObject();
     if (!file.existsAsFile() || object == nullptr)
@@ -161,17 +185,27 @@ bool LicenseManager::loadFromFile(const juce::File& file,
     }
     state.store(static_cast<int>(newInfo.state), std::memory_order_release);
     return true;
+#endif
 }
 
 LicenseManager::State LicenseManager::getState() const noexcept
 {
+#if JUCE_IOS
+    return soundrave::iap::IAPManager::getInstance().isUnlocked()
+        ? State::Valid : State::Unlicensed;
+#else
     return static_cast<State>(state.load(std::memory_order_acquire));
+#endif
 }
 
 LicenseManager::LicenseInfo LicenseManager::getInfo() const
 {
     const std::lock_guard<std::mutex> lock(mutex);
-    return info;
+    auto currentInfo = info;
+#if JUCE_IOS
+    currentInfo.state = getState();
+#endif
+    return currentInfo;
 }
 
 juce::String LicenseManager::getProductName() const
@@ -182,6 +216,9 @@ juce::String LicenseManager::getProductName() const
 
 juce::String LicenseManager::getStatusString() const
 {
+#if JUCE_IOS
+    return soundrave::iap::IAPManager::getInstance().getStatusString();
+#else
     switch (getState())
     {
         case State::Valid:        return "Licensed";
@@ -192,6 +229,7 @@ juce::String LicenseManager::getStatusString() const
         case State::Unlicensed:   return "Unlicensed";
     }
     return "Unlicensed";
+#endif
 }
 
 juce::String LicenseManager::getExpiryString() const
@@ -224,14 +262,22 @@ int LicenseManager::getTrialDaysRemaining() const
 
 bool LicenseManager::isAudioRestricted() const noexcept
 {
+#if JUCE_IOS
+    return !soundrave::iap::IAPManager::getInstance().isAudioAllowed();
+#else
     const auto current = getState();
     return current == State::Expired || current == State::Invalid
         || current == State::TrialExpired;
+#endif
 }
 
 bool LicenseManager::verifySignature(const juce::var& root,
                                      const juce::String& signatureBase64) const
 {
+#if JUCE_IOS
+    juce::ignoreUnused(root, signatureBase64);
+    return false;
+#else
     juce::MemoryBlock publicKey;
     juce::MemoryOutputStream publicKeyStream(publicKey, false);
     if (!juce::Base64::convertFromBase64(publicKeyStream, publicKeyBase64)
@@ -254,6 +300,7 @@ bool LicenseManager::verifySignature(const juce::var& root,
                reinterpret_cast<const unsigned char*>(utf8.getAddress()),
                static_cast<unsigned long long>(canonicalJson.getNumBytesAsUTF8()),
                static_cast<const unsigned char*>(publicKey.getData())) == 0;
+#endif
 }
 
 void LicenseManager::initialiseTrial()
@@ -302,7 +349,10 @@ void LicenseManager::setState(State newState)
 
 juce::File LicenseManager::getProductDataDirectory(const juce::String& product)
 {
-#if JUCE_MAC
+#if JUCE_IOS
+    auto base = juce::File::getSpecialLocation(
+        juce::File::userDocumentsDirectory);
+#elif JUCE_MAC
     auto base = juce::File::getSpecialLocation(juce::File::userHomeDirectory)
                     .getChildFile("Library")
                     .getChildFile("Audio")

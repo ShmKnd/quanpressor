@@ -4,7 +4,14 @@
 #include <array>
 #include "PluginProcessor.h"
 #include "QuanpressorInfoOverlay.h"
+
+#if JUCE_IOS
+#include "iap/IAPComponent.h"
+using PlatformLicenseComponent = IAPComponent;
+#else
 #include "license/LicenseComponent.h"
+using PlatformLicenseComponent = LicenseComponent;
+#endif
 
 class MeterPrivacyRenderer;
 
@@ -183,6 +190,7 @@ private:
     void showInfoDialog();
     void closeInfoPanel();
     void updateLicenseLayout();
+    juce::Rectangle<int> scaledUiBounds(juce::Rectangle<int>) const;
     void updateMeterPrivacy(bool enabled, bool forceCapture = false);
     void addKnob(Knob&, const char*);
 
@@ -191,7 +199,7 @@ private:
     PresetLookAndFeel presetLookAndFeel;
     juce::TooltipWindow tooltipWindow { this, 1700 };
     juce::Component content;
-    LicenseComponent licenseComponent;
+    PlatformLicenseComponent licenseComponent;
     juce::ComboBox presetMenu;
     PresetArrowButton previousPreset { false };
     PresetArrowButton nextPreset { true };
@@ -237,6 +245,9 @@ private:
     bool meterPrivacyEnabled = false;
     int meterPrivacyCaptureCounter = 0;
     int displayedArchitecture = -1;
+    float currentUiScale = 0.75f;
+    juce::Point<int> currentUiOrigin;
+    bool licenseVisibleForLayout = false;
 
     std::vector<std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>> sa;
     std::vector<std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment>> ca;

@@ -3,7 +3,7 @@
 <JUCERPROJECT id="QnPr031" name="Quanpressor" projectType="audioplug" version="1.0.1" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" headerPath="../../../Patina/include;&#10;../../libs/libsodium/include"
               pluginName="Quanpressor" pluginDesc="Quanpressor" pluginManufacturer="SoundRave"
-              pluginManufacturerCode="SRav" pluginCode="QnPr" pluginFormats="buildAU,buildStandalone,buildVST3"
+              pluginManufacturerCode="SRav" pluginCode="QnPr" pluginFormats="buildAU,buildStandalone,buildVST3,buildAUv3"
               companyName="SoundRave" bundleIdentifier="org.soundrave.quanpressor"
               vst3Category="Fx|Dynamics">
   <MAINGROUP id="mainQnPr" name="Quanpressor">
@@ -35,6 +35,18 @@
               file="Source/license/LicenseManager.cpp"/>
         <FILE id="licHQnPr" name="LicenseManager.h" compile="0" resource="0"
               file="Source/license/LicenseManager.h"/>
+      </GROUP>
+      <GROUP id="iapQnPr" name="iap">
+        <FILE id="iapCQnPr" name="IAPComponent.h" compile="0" resource="0"
+              file="Source/iap/IAPComponent.h"/>
+        <FILE id="iapPQnPr" name="IAPProductConfig.h" compile="0" resource="0"
+              file="Source/iap/IAPProductConfig.h"/>
+        <FILE id="iapMQnPr" name="IAPManager.cpp" compile="1" resource="0"
+              file="Source/iap/IAPManager.cpp"/>
+        <FILE id="iapHQnPr" name="IAPManager.h" compile="0" resource="0"
+              file="Source/iap/IAPManager.h"/>
+        <FILE id="iapSQnPr" name="StoreKitBridge.swift" compile="1" resource="0"
+              file="Source/iap/StoreKitBridge.swift"/>
       </GROUP>
     </GROUP>
     <GROUP id="{4A11D255-50D1-EA2D-5225-5AE14D76DEDA}" name="Assets">
@@ -141,8 +153,10 @@
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" extraLinkerFlags="../../libs/libsodium/libsodium_universal.a">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" targetName="Quanpressor"/>
-        <CONFIGURATION isDebug="0" name="Release" targetName="Quanpressor"/>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="Quanpressor"
+                       customXcodeFlags="SWIFT_VERSION = 5.0"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="Quanpressor"
+                       customXcodeFlags="SWIFT_VERSION = 5.0"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_audio_basics" path="../../../JUCE/modules"/>
@@ -162,5 +176,39 @@
         <MODULEPATH id="juce_audio_processors_headless" path="../../JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
+    <XCODE_IPHONE targetFolder="Builds/iOS" bundleIdentifier="com.SoundRave.Quanpressor"
+                  iosDeviceFamily="1,2"
+                  iosScreenOrientation="UIInterfaceOrientationLandscapeLeft,UIInterfaceOrientationLandscapeRight"
+                  iPadScreenOrientation="UIInterfaceOrientationLandscapeLeft,UIInterfaceOrientationLandscapeRight"
+                  microphonePermissionNeeded="1" iosAppGroups="1"
+                  iosAppGroupsId="group.com.SoundRave.Quanpressor"
+                  extraFrameworks="StoreKit" iosDevelopmentTeamID="8HG9X793AV"
+                  iosInAppPurchases="1" buildNumber="1.0.1">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="Quanpressor"
+                       iosDeploymentTarget="16.0"
+                       customXcodeFlags="SWIFT_VERSION = 5.0, ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES, LIBRARY_SEARCH_PATHS = $(inherited) $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/$(PLATFORM_NAME)"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="Quanpressor"
+                       iosDeploymentTarget="16.0"
+                       customXcodeFlags="SWIFT_VERSION = 5.0, ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES, LIBRARY_SEARCH_PATHS = $(inherited) $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/$(PLATFORM_NAME)"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_dsp" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_opengl" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors_headless" path="../../JUCE/modules"/>
+      </MODULEPATHS>
+    </XCODE_IPHONE>
   </EXPORTFORMATS>
 </JUCERPROJECT>
