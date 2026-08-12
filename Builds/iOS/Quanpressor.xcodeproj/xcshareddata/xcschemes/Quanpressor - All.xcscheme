@@ -15,9 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "60C63814CE54C7CD4991DF3B"
-               BuildableName = "Quanpressor.app"
-               BlueprintName = "Quanpressor - Standalone Plugin"
+               BlueprintIdentifier = "E07EB51B564F6644D9396C9D"
+               BuildableName = "Quanpressor - All"
+               BlueprintName = "Quanpressor - All"
                ReferencedContainer = "container:Quanpressor.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -40,16 +40,6 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "60C63814CE54C7CD4991DF3B"
-            BuildableName = "Quanpressor.app"
-            BlueprintName = "Quanpressor - Standalone Plugin"
-            ReferencedContainer = "container:Quanpressor.xcodeproj">
-         </BuildableReference>
-      </BuildableProductRunnable>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -57,16 +47,15 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
+      <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "60C63814CE54C7CD4991DF3B"
-            BuildableName = "Quanpressor.app"
-            BlueprintName = "Quanpressor - Standalone Plugin"
+            BlueprintIdentifier = "E07EB51B564F6644D9396C9D"
+            BuildableName = "Quanpressor - All"
+            BlueprintName = "Quanpressor - All"
             ReferencedContainer = "container:Quanpressor.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </MacroExpansion>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">
