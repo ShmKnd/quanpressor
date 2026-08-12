@@ -1,5 +1,21 @@
 cmake_minimum_required(VERSION 3.22)
+cmake_policy(SET CMP0091 NEW)
 project(Quanpressor VERSION 1.0.1)
+
+# Ship the Windows plugin with the static MSVC runtime: /MT in Release and
+# /MTd in Debug. This keeps the VST3 self-contained with its bundled deps.
+if(MSVC)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY
+        "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
+
+set(PATINA_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../Patina" CACHE PATH
+    "Path to the Patina include directory (the directory containing patina.h)")
+if(NOT EXISTS "${PATINA_DIR}/include/patina.h")
+    message(FATAL_ERROR
+        "Quanpressor: patina.h was not found. Set PATINA_DIR to the Patina source directory, "
+        "for example -DPATINA_DIR=D:/dev/Patina")
+endif()
 
 include(FetchContent)
 FetchContent_Declare(JUCE GIT_REPOSITORY https://github.com/juce-framework/JUCE.git GIT_TAG 8.0.6)
@@ -27,7 +43,24 @@ juce_add_plugin(Quanpressor
     NEEDS_MIDI_INPUT FALSE
     NEEDS_MIDI_OUTPUT FALSE
     EDITOR_WANTS_KEYBOARD_FOCUS FALSE
-    COPY_PLUGIN_AFTER_BUILD FALSE)
+    COPY_PLUGIN_AFTER_BUILD FALSE
+    # JUCE 8.0.6's Windows manifest helper can write moduleinfo.json but
+    # occasionally fails to exit afterwards. Install the equivalent static
+    # manifest below so VST3 builds remain deterministic.
+    VST3_AUTO_MANIFEST FALSE)
+
+get_target_property(QUANPRESSOR_VST3_ARTEFACT Quanpressor_VST3 JUCE_PLUGIN_ARTEFACT_FILE)
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/Resources/moduleinfo.json.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/Quanpressor-moduleinfo.json"
+    @ONLY)
+add_custom_command(TARGET Quanpressor_VST3 POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory
+        "${QUANPRESSOR_VST3_ARTEFACT}/Contents/Resources"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_CURRENT_BINARY_DIR}/Quanpressor-moduleinfo.json"
+        "${QUANPRESSOR_VST3_ARTEFACT}/Contents/Resources/moduleinfo.json"
+    VERBATIM)
 
 target_sources(Quanpressor PRIVATE
     Source/PluginProcessor.cpp Source/PluginProcessor.h
@@ -41,7 +74,7 @@ target_sources(Quanpressor PRIVATE
 
 target_include_directories(Quanpressor PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/Patina
+    ${PATINA_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/libs/libsodium/include)
 
 target_compile_definitions(Quanpressor PUBLIC

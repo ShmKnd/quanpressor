@@ -112,10 +112,10 @@ public:
 
         const auto grRayPoint = [=](float degrees, float inset)
         {
-            constexpr juce::Point<float> needleCentre { 165.0f, designHeight * 0.88f };
-            constexpr juce::Point<float> scaleCentre { 165.0f, designHeight * 0.68f };
-            constexpr float radiusX = designWidth * 0.47f;
-            constexpr float radiusY = designHeight * 0.64f;
+            const juce::Point<float> needleCentre { 165.0f, designHeight * 0.88f };
+            const juce::Point<float> scaleCentre { 165.0f, designHeight * 0.68f };
+            const float radiusX = designWidth * 0.47f;
+            const float radiusY = designHeight * 0.64f;
             const float angle = juce::degreesToRadians(degrees);
             const juce::Point<float> direction { std::cos(angle), std::sin(angle) };
             const auto origin = needleCentre - scaleCentre;
