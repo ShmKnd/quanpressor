@@ -233,15 +233,21 @@ bool LicenseManager::verifySignature(const juce::var& root,
                                      const juce::String& signatureBase64) const
 {
     juce::MemoryBlock publicKey;
-    juce::MemoryOutputStream publicKeyStream(publicKey, false);
-    if (!juce::Base64::convertFromBase64(publicKeyStream, publicKeyBase64)
-        || publicKey.getSize() != crypto_sign_PUBLICKEYBYTES)
+    {
+        juce::MemoryOutputStream publicKeyStream(publicKey, false);
+        if (!juce::Base64::convertFromBase64(publicKeyStream, publicKeyBase64))
+            return false;
+    }
+    if (publicKey.getSize() != crypto_sign_PUBLICKEYBYTES)
         return false;
 
     juce::MemoryBlock signature;
-    juce::MemoryOutputStream signatureStream(signature, false);
-    if (!juce::Base64::convertFromBase64(signatureStream, signatureBase64)
-        || signature.getSize() != crypto_sign_BYTES)
+    {
+        juce::MemoryOutputStream signatureStream(signature, false);
+        if (!juce::Base64::convertFromBase64(signatureStream, signatureBase64))
+            return false;
+    }
+    if (signature.getSize() != crypto_sign_BYTES)
         return false;
 
     const auto canonicalJson = serialiseCanonicalJson(root);
