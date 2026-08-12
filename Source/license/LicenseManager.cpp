@@ -269,7 +269,11 @@ void LicenseManager::setState(State newState)
 
 juce::File LicenseManager::getProductDataDirectory(const juce::String& product)
 {
-#if JUCE_MAC || JUCE_WINDOWS
+#if JUCE_MAC
+    auto base = juce::File::getSpecialLocation(juce::File::userHomeDirectory)
+                    .getChildFile("Library")
+                    .getChildFile("Application Support");
+#elif JUCE_WINDOWS
     auto base = juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory);
 #else
     auto base = juce::File::getSpecialLocation(juce::File::userHomeDirectory)
