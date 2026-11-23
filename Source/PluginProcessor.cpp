@@ -1,3 +1,4 @@
+#include "ProductStorage.h"
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "license/AudioRestrictor.h"
@@ -539,20 +540,11 @@ juce::String QuanpressorAudioProcessor::makeSafePresetName(
 
 juce::File QuanpressorAudioProcessor::getUserPresetDirectory() const
 {
+    const auto target = soundrave::storage::productDirectory().getChildFile("Presets");
 #if JUCE_MAC
-    return juce::File::getSpecialLocation(
-               juce::File::userHomeDirectory)
-        .getChildFile("Library")
-        .getChildFile("Audio")
-        .getChildFile("Presets")
-        .getChildFile("SoundRave")
-        .getChildFile("Quanpressor");
+    return soundrave::storage::migratePresets(soundrave::storage::legacyAudioDirectory(), target);
 #else
-    return juce::File::getSpecialLocation(
-               juce::File::userApplicationDataDirectory)
-        .getChildFile("SoundRave")
-        .getChildFile("Quanpressor")
-        .getChildFile("Presets");
+    return target;
 #endif
 }
 

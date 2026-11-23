@@ -62,7 +62,10 @@ add_custom_command(TARGET Quanpressor_VST3 POST_BUILD
         "${QUANPRESSOR_VST3_ARTEFACT}/Contents/Resources/moduleinfo.json"
     VERBATIM)
 
+juce_generate_juce_header(Quanpressor)
+
 target_sources(Quanpressor PRIVATE
+    Source/DesktopStandalone.cpp Source/ProductStorage.h
     Source/PluginProcessor.cpp Source/PluginProcessor.h
     Source/PluginEditor.cpp Source/PluginEditor.h Source/QuanpressorInfoOverlay.h
     Source/MeterPrivacyRenderer.cpp Source/MeterPrivacyRenderer.h
@@ -77,6 +80,10 @@ target_include_directories(Quanpressor PRIVATE
     ${PATINA_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/libs/libsodium/include)
 
+if(APPLE OR WIN32)
+    target_compile_definitions(Quanpressor PUBLIC JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1)
+endif()
+
 target_compile_definitions(Quanpressor PUBLIC
     JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0 JUCE_VST3_CAN_REPLACE_VST2=0
     $<$<PLATFORM_ID:Windows>:SODIUM_STATIC>)
@@ -85,3 +92,14 @@ target_link_libraries(Quanpressor PRIVATE
     SoundRaveSodium
     juce::juce_audio_utils juce::juce_data_structures juce::juce_dsp juce::juce_opengl
     PUBLIC juce::juce_recommended_config_flags juce::juce_recommended_lto_flags juce::juce_recommended_warning_flags)
+
+option(QUANPRESSOR_BUILD_STORAGE_TESTS "Build product storage migration tests" OFF)
+if(QUANPRESSOR_BUILD_STORAGE_TESTS)
+    enable_testing()
+    juce_add_console_app(QuanpressorStorageTests PRODUCT_NAME "Quanpressor Storage Tests")
+    juce_generate_juce_header(QuanpressorStorageTests)
+    target_sources(QuanpressorStorageTests PRIVATE Tests/StorageMigrationTest.cpp Source/ProductStorage.h)
+    target_link_libraries(QuanpressorStorageTests PRIVATE juce::juce_core)
+    target_compile_definitions(QuanpressorStorageTests PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
+    add_test(NAME QuanpressorStorageTests COMMAND QuanpressorStorageTests)
+endif()

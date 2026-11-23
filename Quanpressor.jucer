@@ -8,6 +8,8 @@
               vst3Category="Fx|Dynamics">
   <MAINGROUP id="mainQnPr" name="Quanpressor">
     <GROUP id="srcQnPr" name="Source">
+      <FILE id="QnDesktopStandalone" name="DesktopStandalone.cpp" compile="1" resource="0" file="Source/DesktopStandalone.cpp"/>
+      <FILE id="QnProductStorage" name="ProductStorage.h" compile="0" resource="0" file="Source/ProductStorage.h"/>
       <FILE id="metQnPr" name="Metering.h" compile="0" resource="0" file="Source/Metering.h"/>
       <FILE id="mprQnPr" name="MeterPrivacyRenderer.cpp" compile="1" resource="0"
             file="Source/MeterPrivacyRenderer.cpp"/>
@@ -139,7 +141,7 @@
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_WEB_BROWSER="0" JUCE_USE_CURL="0"
                JUCE_VST3_CAN_REPLACE_VST2="0"/>
   <EXPORTFORMATS>
-    <XCODE_MAC targetFolder="Builds/MacOSX" extraLinkerFlags="../../libs/libsodium/libsodium_universal.a">
+    <XCODE_MAC extraDefs="JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1" targetFolder="Builds/MacOSX" extraLinkerFlags="../../libs/libsodium/libsodium_universal.a">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" targetName="Quanpressor"/>
         <CONFIGURATION isDebug="0" name="Release" targetName="Quanpressor"/>

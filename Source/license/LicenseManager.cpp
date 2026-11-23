@@ -1,3 +1,4 @@
+#include "../ProductStorage.h"
 #include "LicenseManager.h"
 #include <sodium.h>
 
@@ -58,10 +59,18 @@ void LicenseManager::initialise(const juce::String& requestedProduct, int reques
     options.applicationName = "license_state";
     options.filenameSuffix = ".props";
     options.commonToAllUsers = false;
-    properties = std::make_unique<juce::PropertiesFile>(
-        getProductDataDirectory(productName)
-            .getChildFile(".license_state.props"),
-        options);
+    const auto target = getProductDataDirectory(productName).getChildFile(".license_state.props");
+#if JUCE_MAC
+    const auto selected = soundrave::storage::migrateFile(target, {
+        target.getSiblingFile("license_state.props"),
+        soundrave::storage::legacyLibraryDirectory().getChildFile(".license_state.props"),
+        soundrave::storage::legacyLibraryDirectory().getChildFile("license_state.props"),
+        soundrave::storage::legacyAudioDirectory().getChildFile(".license_state.props"),
+        soundrave::storage::legacyAudioDirectory().getChildFile("license_state.props") });
+#else
+    const auto selected = target;
+#endif
+    properties = std::make_unique<juce::PropertiesFile>(selected, options);
 
     if (sodium_init() < 0)
     {
@@ -71,7 +80,13 @@ void LicenseManager::initialise(const juce::String& requestedProduct, int reques
 
     for (const auto& candidate : acceptedProducts)
     {
-        const auto file = getDefaultLicenseFile(candidate);
+        auto file = getDefaultLicenseFile(candidate);
+#if JUCE_MAC
+        const auto name = candidate + ".soundravelicense";
+        file = soundrave::storage::migrateFile(file, {
+            soundrave::storage::legacyLibraryDirectory().getChildFile(name),
+            soundrave::storage::legacyAudioDirectory().getChildFile(name) });
+#endif
         if (file.existsAsFile() && loadFromFile(file, &acceptedProducts))
             return;
     }

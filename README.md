@@ -17,9 +17,10 @@ Implemented:
 - input/output meters, GR meter, transfer curve, and scrolling GR history
 - Vari-Mu FAST / MID / SLOW time-constant buttons
 
-On macOS, Quanpressor stores user presets, license data, and trial state under
-`~/Library/Audio/Presets/SoundRave/Quanpressor`. It does not create or update
-Quanpressor data under `~/Library/Application Support`.
+On macOS, Quanpressor stores its settings, license data, trial state, and user
+presets under `~/Library/Application Support/SoundRave/Quanpressor/`. On
+Windows, it uses `%APPDATA%/SoundRave/Quanpressor/`. Existing macOS data is
+copied from earlier locations when needed; original files are retained.
 
 ## Build
 
