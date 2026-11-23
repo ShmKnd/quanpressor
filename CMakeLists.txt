@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 cmake_policy(SET CMP0091 NEW)
-project(Quanpressor VERSION 1.0.1)
+project(Quanpressor VERSION 1.0.2)
 
 # Ship the Windows plugin with the static MSVC runtime: /MT in Release and
 # /MTd in Debug. This keeps the VST3 self-contained with its bundled deps.

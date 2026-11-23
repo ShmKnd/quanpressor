@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="QnPr031" name="Quanpressor" projectType="audioplug" version="1.0.1" useAppConfig="0"
+<JUCERPROJECT id="QnPr031" name="Quanpressor" projectType="audioplug" version="1.0.2" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" headerPath="../../../Patina/include;&#10;../../libs/libsodium/include"
               pluginName="Quanpressor" pluginDesc="Quanpressor" pluginManufacturer="SoundRave"
               pluginManufacturerCode="SRav" pluginCode="QnPr" pluginFormats="buildAU,buildStandalone,buildVST3"
