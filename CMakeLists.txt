@@ -62,6 +62,57 @@ add_custom_command(TARGET Quanpressor_VST3 POST_BUILD
         "${QUANPRESSOR_VST3_ARTEFACT}/Contents/Resources/moduleinfo.json"
     VERBATIM)
 
+juce_add_binary_data(QuanpressorAssets SOURCES
+    "Assets/OS_x2_ON.png"
+    "Assets/OS_x2.png"
+    "Assets/OS_x4_ON.png"
+    "Assets/OS_x4.png"
+    "Assets/NoMeterButton_ON.png"
+    "Assets/VU_GRmode_ON.png"
+    "Assets/VU_INPUTmode_ON.png"
+    "Assets/VU_OUTPUTmode_ON.png"
+    "Assets/Auto Gain Button.png"
+    "Assets/Auto Gain Button_ON.png"
+    "Assets/Auto Release Button.png"
+    "Assets/Auto Release Button_ON.png"
+    "Assets/BG.png"
+    "Assets/FET_Attack_Scale.png"
+    "Assets/Normal_Attack_Scales.png"
+    "Assets/BlueKnob.png"
+    "Assets/FET Button.png"
+    "Assets/FET Button_ON.png"
+    "Assets/GR MATCH Button.png"
+    "Assets/GR MATCH Button_ON.png"
+    "Assets/GrayKnob.png"
+    "Assets/GRCurve_Embos.png"
+    "Assets/GreenKnob.png"
+    "Assets/GRHistory_Embos.png"
+    "Assets/INOUT_Meter_Embos.png"
+    "Assets/Knob_Scales.svg"
+    "Assets/KnobHighlight.png"
+    "Assets/KnobReflectOver.png"
+    "Assets/Mock_v2.png"
+    "Assets/NoMeterButton.png"
+    "Assets/OPTO Button.png"
+    "Assets/OPTO Button_ON.png"
+    "Assets/RedKnob.png"
+    "Assets/RESET PHOTOCELL.png"
+    "Assets/RESET PHOTOCELL_ON.png"
+    "Assets/SC Filter.png"
+    "Assets/SC Filter_ON.png"
+    "Assets/ST Chain.png"
+    "Assets/ST Chain_ON.png"
+    "Assets/Vari-Mu Button.png"
+    "Assets/Vari-Mu Button_ON.png"
+    "Assets/VCA Button.png"
+    "Assets/VCA Button_ON.png"
+    "Assets/VU_GRmode.png"
+    "Assets/VU_INPUTmode.png"
+    "Assets/VU_Meter_Scale.svg"
+    "Assets/VU_OUTPUTmode.png"
+    "Assets/YellowKnob.png"
+)
+
 juce_generate_juce_header(Quanpressor)
 
 target_sources(Quanpressor PRIVATE
@@ -71,9 +122,7 @@ target_sources(Quanpressor PRIVATE
     Source/MeterPrivacyRenderer.cpp Source/MeterPrivacyRenderer.h
     Source/QuanpressorDSP.h Source/QuanpressorFactoryPresets.h Source/Metering.h
     Source/license/LicenseManager.cpp Source/license/LicenseManager.h
-    Source/license/LicenseComponent.h Source/license/AudioRestrictor.h
-    JuceLibraryCode/BinaryData.cpp JuceLibraryCode/BinaryData2.cpp
-    JuceLibraryCode/BinaryData.h)
+    Source/license/LicenseComponent.h Source/license/AudioRestrictor.h)
 
 target_include_directories(Quanpressor PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
@@ -89,7 +138,7 @@ target_compile_definitions(Quanpressor PUBLIC
     $<$<PLATFORM_ID:Windows>:SODIUM_STATIC>)
 
 target_link_libraries(Quanpressor PRIVATE
-    SoundRaveSodium
+    QuanpressorAssets SoundRaveSodium
     juce::juce_audio_utils juce::juce_data_structures juce::juce_dsp juce::juce_opengl
     PUBLIC juce::juce_recommended_config_flags juce::juce_recommended_lto_flags juce::juce_recommended_warning_flags)
 

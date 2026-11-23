@@ -1,7 +1,7 @@
 #include "PluginEditor.h"
 #include "MeterPrivacyRenderer.h"
 #include "VuScaleRenderer.h"
-#include "../JuceLibraryCode/BinaryData.h"
+#include "BinaryData.h"
 #include <cmath>
 
 namespace
