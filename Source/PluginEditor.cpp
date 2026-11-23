@@ -36,24 +36,22 @@ namespace
 
     juce::Image imageFromBinary(const char* data, int size)
     {
-        return juce::ImageFileFormat::loadFrom(data, static_cast<size_t>(size));
+        return juce::ImageCache::getFromMemory(data, size);
     }
 
-    const juce::Image& bgImage()
+    juce::Image bgImage()
     {
-        static const auto img = imageFromBinary(BinaryData::BG_png, BinaryData::BG_pngSize);
+        const auto img = imageFromBinary(BinaryData::BG_png, BinaryData::BG_pngSize);
         return img;
     }
 
-    const juce::Image& attackScaleImage(bool fetMode)
+    juce::Image attackScaleImage(bool fetMode)
     {
-        static const auto fet = imageFromBinary(
+        return fetMode ? imageFromBinary(
             BinaryData::FET_Attack_Scale_png,
-            BinaryData::FET_Attack_Scale_pngSize);
-        static const auto normal = imageFromBinary(
+            BinaryData::FET_Attack_Scale_pngSize) : imageFromBinary(
             BinaryData::Normal_Attack_Scales_png,
             BinaryData::Normal_Attack_Scales_pngSize);
-        return fetMode ? fet : normal;
     }
 
     void drawAttackScale(juce::Graphics& g, bool fetMode)
@@ -175,114 +173,77 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.)LIC";
         return result;
     }
 
-    const juce::Image& knobImage(QuanpressorAudioProcessorEditor::Knob::Colourway colourway)
+    juce::Image knobImage(QuanpressorAudioProcessorEditor::Knob::Colourway colourway)
     {
         using Colourway = QuanpressorAudioProcessorEditor::Knob::Colourway;
-        static const auto green = imageFromBinary(BinaryData::GreenKnob_png, BinaryData::GreenKnob_pngSize);
-        static const auto yellow = imageFromBinary(BinaryData::YellowKnob_png, BinaryData::YellowKnob_pngSize);
-        static const auto red = imageFromBinary(BinaryData::RedKnob_png, BinaryData::RedKnob_pngSize);
-        static const auto blue = imageFromBinary(BinaryData::BlueKnob_png, BinaryData::BlueKnob_pngSize);
-        static const auto grey = imageFromBinary(BinaryData::GrayKnob_png, BinaryData::GrayKnob_pngSize);
 
         switch (colourway)
         {
-            case Colourway::Yellow: return yellow;
-            case Colourway::Red:    return red;
-            case Colourway::Blue:   return blue;
-            case Colourway::Grey:   return grey;
+            case Colourway::Yellow: return imageFromBinary(BinaryData::YellowKnob_png, BinaryData::YellowKnob_pngSize);
+            case Colourway::Red:    return imageFromBinary(BinaryData::RedKnob_png, BinaryData::RedKnob_pngSize);
+            case Colourway::Blue:   return imageFromBinary(BinaryData::BlueKnob_png, BinaryData::BlueKnob_pngSize);
+            case Colourway::Grey:   return imageFromBinary(BinaryData::GrayKnob_png, BinaryData::GrayKnob_pngSize);
             case Colourway::Green:
-            default:                return green;
+            default:                return imageFromBinary(BinaryData::GreenKnob_png, BinaryData::GreenKnob_pngSize);
         }
     }
 
-    const juce::Image& knobHighlightImage()
+    juce::Image knobHighlightImage()
     {
-        static const auto img = imageFromBinary(BinaryData::KnobHighlight_png, BinaryData::KnobHighlight_pngSize);
+        const auto img = imageFromBinary(BinaryData::KnobHighlight_png, BinaryData::KnobHighlight_pngSize);
         return img;
     }
 
-    const juce::Image& knobReflectImage()
+    juce::Image knobReflectImage()
     {
-        static const auto img = imageFromBinary(BinaryData::KnobReflectOver_png, BinaryData::KnobReflectOver_pngSize);
+        const auto img = imageFromBinary(BinaryData::KnobReflectOver_png, BinaryData::KnobReflectOver_pngSize);
         return img;
     }
 
-    const juce::Image& buttonImage(QuanpressorAudioProcessorEditor::ImageButton::Kind kind, bool on)
+    juce::Image buttonImage(QuanpressorAudioProcessorEditor::ImageButton::Kind kind, bool on)
     {
         using Kind = QuanpressorAudioProcessorEditor::ImageButton::Kind;
-        static const auto fet = imageFromBinary(BinaryData::FET_Button_png, BinaryData::FET_Button_pngSize);
-        static const auto fetOn = imageFromBinary(BinaryData::FET_Button_ON_png, BinaryData::FET_Button_ON_pngSize);
-        static const auto opto = imageFromBinary(BinaryData::OPTO_Button_png, BinaryData::OPTO_Button_pngSize);
-        static const auto optoOn = imageFromBinary(BinaryData::OPTO_Button_ON_png, BinaryData::OPTO_Button_ON_pngSize);
-        static const auto vca = imageFromBinary(BinaryData::VCA_Button_png, BinaryData::VCA_Button_pngSize);
-        static const auto vcaOn = imageFromBinary(BinaryData::VCA_Button_ON_png, BinaryData::VCA_Button_ON_pngSize);
-        static const auto variMu = imageFromBinary(BinaryData::VariMu_Button_png, BinaryData::VariMu_Button_pngSize);
-        static const auto variMuOn = imageFromBinary(BinaryData::VariMu_Button_ON_png, BinaryData::VariMu_Button_ON_pngSize);
-        static const auto gr = imageFromBinary(BinaryData::GR_MATCH_Button_png, BinaryData::GR_MATCH_Button_pngSize);
-        static const auto grOn = imageFromBinary(BinaryData::GR_MATCH_Button_ON_png, BinaryData::GR_MATCH_Button_ON_pngSize);
-        static const auto autoRelease = imageFromBinary(BinaryData::Auto_Release_Button_png, BinaryData::Auto_Release_Button_pngSize);
-        static const auto autoReleaseOn = imageFromBinary(BinaryData::Auto_Release_Button_ON_png, BinaryData::Auto_Release_Button_ON_pngSize);
-        static const auto autoGain = imageFromBinary(BinaryData::Auto_Gain_Button_png, BinaryData::Auto_Gain_Button_pngSize);
-        static const auto autoGainOn = imageFromBinary(BinaryData::Auto_Gain_Button_ON_png, BinaryData::Auto_Gain_Button_ON_pngSize);
-        static const auto stChain = imageFromBinary(BinaryData::ST_Chain_png, BinaryData::ST_Chain_pngSize);
-        static const auto stChainOn = imageFromBinary(BinaryData::ST_Chain_ON_png, BinaryData::ST_Chain_ON_pngSize);
-        static const auto scFilter = imageFromBinary(BinaryData::SC_Filter_png, BinaryData::SC_Filter_pngSize);
-        static const auto scFilterOn = imageFromBinary(BinaryData::SC_Filter_ON_png, BinaryData::SC_Filter_ON_pngSize);
-        static const auto resetPhotocell = imageFromBinary(BinaryData::RESET_PHOTOCELL_png, BinaryData::RESET_PHOTOCELL_pngSize);
-        static const auto resetPhotocellOn = imageFromBinary(BinaryData::RESET_PHOTOCELL_ON_png, BinaryData::RESET_PHOTOCELL_ON_pngSize);
-        static const auto vuOutput = imageFromBinary(BinaryData::VU_OUTPUTmode_png, BinaryData::VU_OUTPUTmode_pngSize);
-        static const auto vuOutputOn = imageFromBinary(BinaryData::VU_OUTPUTmode_ON_png, BinaryData::VU_OUTPUTmode_ON_pngSize);
-        static const auto vuInput = imageFromBinary(BinaryData::VU_INPUTmode_png, BinaryData::VU_INPUTmode_pngSize);
-        static const auto vuInputOn = imageFromBinary(BinaryData::VU_INPUTmode_ON_png, BinaryData::VU_INPUTmode_ON_pngSize);
-        static const auto vuGr = imageFromBinary(BinaryData::VU_GRmode_png, BinaryData::VU_GRmode_pngSize);
-        static const auto vuGrOn = imageFromBinary(BinaryData::VU_GRmode_ON_png, BinaryData::VU_GRmode_ON_pngSize);
-        static const auto noMeter = imageFromBinary(BinaryData::NoMeterButton_png, BinaryData::NoMeterButton_pngSize);
-        static const auto noMeterOn = imageFromBinary(BinaryData::NoMeterButton_ON_png, BinaryData::NoMeterButton_ON_pngSize);
-        static const auto os2 = imageFromBinary(BinaryData::OS_x2_png, BinaryData::OS_x2_pngSize);
-        static const auto os2On = imageFromBinary(BinaryData::OS_x2_ON_png, BinaryData::OS_x2_ON_pngSize);
-        static const auto os4 = imageFromBinary(BinaryData::OS_x4_png, BinaryData::OS_x4_pngSize);
-        static const auto os4On = imageFromBinary(BinaryData::OS_x4_ON_png, BinaryData::OS_x4_ON_pngSize);
 
         switch (kind)
         {
-            case Kind::Opto:        return on ? optoOn : opto;
-            case Kind::Vca:         return on ? vcaOn : vca;
-            case Kind::VariMu:      return on ? variMuOn : variMu;
-            case Kind::GrMatch:     return on ? grOn : gr;
-            case Kind::AutoRelease: return on ? autoReleaseOn : autoRelease;
-            case Kind::AutoGain:    return on ? autoGainOn : autoGain;
-            case Kind::StChain:     return on ? stChainOn : stChain;
-            case Kind::ScFilter:    return on ? scFilterOn : scFilter;
-            case Kind::ResetPhotocell: return on ? resetPhotocellOn : resetPhotocell;
-            case Kind::VuOutput:    return on ? vuOutputOn : vuOutput;
-            case Kind::VuInput:     return on ? vuInputOn : vuInput;
-            case Kind::VuGr:        return on ? vuGrOn : vuGr;
-            case Kind::NoMeter:     return on ? noMeterOn : noMeter;
-            case Kind::Os2:         return on ? os2On : os2;
-            case Kind::Os4:         return on ? os4On : os4;
-            case Kind::ExternalSidechain: return on ? scFilterOn : scFilter;
+            case Kind::Opto:        return on ? imageFromBinary(BinaryData::OPTO_Button_ON_png, BinaryData::OPTO_Button_ON_pngSize) : imageFromBinary(BinaryData::OPTO_Button_png, BinaryData::OPTO_Button_pngSize);
+            case Kind::Vca:         return on ? imageFromBinary(BinaryData::VCA_Button_ON_png, BinaryData::VCA_Button_ON_pngSize) : imageFromBinary(BinaryData::VCA_Button_png, BinaryData::VCA_Button_pngSize);
+            case Kind::VariMu:      return on ? imageFromBinary(BinaryData::VariMu_Button_ON_png, BinaryData::VariMu_Button_ON_pngSize) : imageFromBinary(BinaryData::VariMu_Button_png, BinaryData::VariMu_Button_pngSize);
+            case Kind::GrMatch:     return on ? imageFromBinary(BinaryData::GR_MATCH_Button_ON_png, BinaryData::GR_MATCH_Button_ON_pngSize) : imageFromBinary(BinaryData::GR_MATCH_Button_png, BinaryData::GR_MATCH_Button_pngSize);
+            case Kind::AutoRelease: return on ? imageFromBinary(BinaryData::Auto_Release_Button_ON_png, BinaryData::Auto_Release_Button_ON_pngSize) : imageFromBinary(BinaryData::Auto_Release_Button_png, BinaryData::Auto_Release_Button_pngSize);
+            case Kind::AutoGain:    return on ? imageFromBinary(BinaryData::Auto_Gain_Button_ON_png, BinaryData::Auto_Gain_Button_ON_pngSize) : imageFromBinary(BinaryData::Auto_Gain_Button_png, BinaryData::Auto_Gain_Button_pngSize);
+            case Kind::StChain:     return on ? imageFromBinary(BinaryData::ST_Chain_ON_png, BinaryData::ST_Chain_ON_pngSize) : imageFromBinary(BinaryData::ST_Chain_png, BinaryData::ST_Chain_pngSize);
+            case Kind::ScFilter:    return on ? imageFromBinary(BinaryData::SC_Filter_ON_png, BinaryData::SC_Filter_ON_pngSize) : imageFromBinary(BinaryData::SC_Filter_png, BinaryData::SC_Filter_pngSize);
+            case Kind::ResetPhotocell: return on ? imageFromBinary(BinaryData::RESET_PHOTOCELL_ON_png, BinaryData::RESET_PHOTOCELL_ON_pngSize) : imageFromBinary(BinaryData::RESET_PHOTOCELL_png, BinaryData::RESET_PHOTOCELL_pngSize);
+            case Kind::VuOutput:    return on ? imageFromBinary(BinaryData::VU_OUTPUTmode_ON_png, BinaryData::VU_OUTPUTmode_ON_pngSize) : imageFromBinary(BinaryData::VU_OUTPUTmode_png, BinaryData::VU_OUTPUTmode_pngSize);
+            case Kind::VuInput:     return on ? imageFromBinary(BinaryData::VU_INPUTmode_ON_png, BinaryData::VU_INPUTmode_ON_pngSize) : imageFromBinary(BinaryData::VU_INPUTmode_png, BinaryData::VU_INPUTmode_pngSize);
+            case Kind::VuGr:        return on ? imageFromBinary(BinaryData::VU_GRmode_ON_png, BinaryData::VU_GRmode_ON_pngSize) : imageFromBinary(BinaryData::VU_GRmode_png, BinaryData::VU_GRmode_pngSize);
+            case Kind::NoMeter:     return on ? imageFromBinary(BinaryData::NoMeterButton_ON_png, BinaryData::NoMeterButton_ON_pngSize) : imageFromBinary(BinaryData::NoMeterButton_png, BinaryData::NoMeterButton_pngSize);
+            case Kind::Os2:         return on ? imageFromBinary(BinaryData::OS_x2_ON_png, BinaryData::OS_x2_ON_pngSize) : imageFromBinary(BinaryData::OS_x2_png, BinaryData::OS_x2_pngSize);
+            case Kind::Os4:         return on ? imageFromBinary(BinaryData::OS_x4_ON_png, BinaryData::OS_x4_ON_pngSize) : imageFromBinary(BinaryData::OS_x4_png, BinaryData::OS_x4_pngSize);
+            case Kind::ExternalSidechain: return on ? imageFromBinary(BinaryData::SC_Filter_ON_png, BinaryData::SC_Filter_ON_pngSize) : imageFromBinary(BinaryData::SC_Filter_png, BinaryData::SC_Filter_pngSize);
             case Kind::Fet:
-            default:                return on ? fetOn : fet;
+            default:                return on ? imageFromBinary(BinaryData::FET_Button_ON_png, BinaryData::FET_Button_ON_pngSize) : imageFromBinary(BinaryData::FET_Button_png, BinaryData::FET_Button_pngSize);
         }
     }
 
-    const juce::Image& inOutMeterEmbosImage()
+    juce::Image inOutMeterEmbosImage()
     {
-        static const auto img = imageFromBinary(BinaryData::INOUT_Meter_Embos_png,
+        const auto img = imageFromBinary(BinaryData::INOUT_Meter_Embos_png,
                                                 BinaryData::INOUT_Meter_Embos_pngSize);
         return img;
     }
 
-    const juce::Image& grCurveEmbosImage()
+    juce::Image grCurveEmbosImage()
     {
-        static const auto img = imageFromBinary(BinaryData::GRCurve_Embos_png,
+        const auto img = imageFromBinary(BinaryData::GRCurve_Embos_png,
                                                 BinaryData::GRCurve_Embos_pngSize);
         return img;
     }
 
-    const juce::Image& grHistoryEmbosImage()
+    juce::Image grHistoryEmbosImage()
     {
-        static const auto img = imageFromBinary(BinaryData::GRHistory_Embos_png,
+        const auto img = imageFromBinary(BinaryData::GRHistory_Embos_png,
                                                 BinaryData::GRHistory_Embos_pngSize);
         return img;
     }
