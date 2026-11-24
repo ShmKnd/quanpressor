@@ -28,18 +28,39 @@ inline juce::File legacyAudioDirectory()
 
 inline juce::File migrateFile(const juce::File& target, const juce::Array<juce::File>& sources)
 {
-    if (target.existsAsFile()) return target;
     juce::File source;
     for (const auto& candidate : sources)
-        if (candidate.existsAsFile()) { source = candidate; break; }
+        if (candidate != target && candidate.existsAsFile()) { source = candidate; break; }
     if (source == juce::File()) return target;
     juce::InterProcessLock lock("QuanpressorStorage-" + juce::String::toHexString(target.getFullPathName().hashCode64()));
-    if (!lock.enter(5000)) return source;
+    if (!lock.enter(5000)) return target.existsAsFile() ? target : source;
     struct Unlock { juce::InterProcessLock& lock; ~Unlock() { lock.exit(); } } unlock{lock};
-    if (target.existsAsFile()) return target;
-    if (source.isSymbolicLink() || target.getParentDirectory().createDirectory().failed()) return source;
-    juce::TemporaryFile temporary(target);
-    if (!source.copyFileTo(temporary.getFile()) || !temporary.overwriteTargetFileWithTemporary()) return source;
+    if (!target.existsAsFile())
+    {
+        if (!source.existsAsFile() || source.isSymbolicLink() || target.exists()
+            || target.getParentDirectory().createDirectory().failed()) return source;
+        juce::TemporaryFile temporary(target);
+        if (!source.copyFileTo(temporary.getFile()) || !source.hasIdenticalContentTo(temporary.getFile())
+            || !temporary.overwriteTargetFileWithTemporary()) return source;
+    }
+    if (!target.isSymbolicLink())
+        for (const auto& candidate : sources)
+        {
+            if (candidate == target || candidate.isSymbolicLink() || !candidate.existsAsFile()) continue;
+            const auto size = candidate.getSize();
+            const auto modified = candidate.getLastModificationTime();
+            if (candidate.hasIdenticalContentTo(target) && candidate.getSize() == size
+                && candidate.getLastModificationTime() == modified)
+            {
+                const auto archive = target.getParentDirectory().getChildFile(".legacy-migrated");
+                if (!archive.isSymbolicLink() && archive.createDirectory().wasOk())
+                {
+                    const auto backup = archive.getNonexistentChildFile(
+                        candidate.getFileNameWithoutExtension(), candidate.getFileExtension(), false);
+                    candidate.moveFileTo(backup);
+                }
+            }
+        }
     return target;
 }
 

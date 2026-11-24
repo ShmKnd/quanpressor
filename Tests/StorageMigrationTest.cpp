@@ -29,10 +29,16 @@ int main()
     const auto installed = product.getChildFile("license");
     check(license.replaceWithText("valid data"), "license fixture");
     check(soundrave::storage::migrateFile(installed, { license }) == installed
-        && license.existsAsFile() && installed.hasIdenticalContentTo(license), "license copy preserves original");
+        && !license.exists() && installed.loadFileAsString() == "valid data", "verified license migration archives duplicate");
+    check(product.getChildFile(".legacy-migrated/license").loadFileAsString() == "valid data", "legacy license backup preserved");
+    check(license.replaceWithText("valid data"), "restore legacy fixture");
     check(installed.replaceWithText("current") &&
         soundrave::storage::migrateFile(installed, { license }) == installed &&
-        installed.loadFileAsString() == "current", "existing license state preserved");
+        installed.loadFileAsString() == "current" && license.loadFileAsString() == "valid data", "conflicting license state preserved");
+    check(installed.replaceWithText("valid data") &&
+        soundrave::storage::migrateFile(installed, { license }) == installed && !license.exists(),
+        "existing identical license is archived");
+    check(license.replaceWithText("valid data"), "restore legacy fixture for failure test");
     const auto newerState = legacy.getChildFile("newer-state");
     const auto olderState = legacy.getChildFile("older-state");
     const auto selectedState = product.getChildFile("state");
